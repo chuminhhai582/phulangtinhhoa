@@ -6,6 +6,20 @@ import { revalidatePath, unstable_noStore } from "next/cache";
 export async function getMapLocations() {
   unstable_noStore();
   const supabase = createClient();
+
+  // Step 1: Simple query without joins to test basic connectivity
+  const { data: rawCount, error: countError } = await supabase
+    .from("map_locations")
+    .select("id", { count: "exact" });
+
+  if (countError) {
+    console.error("MAP DEBUG - Count query error:", countError);
+    return { data: [], error: `Lỗi đếm: ${countError.message} (code: ${countError.code})` };
+  }
+
+  console.log("MAP DEBUG - Raw count:", rawCount?.length);
+
+  // Step 2: Full query with joins
   const { data, error } = await supabase
     .from("map_locations")
     .select(`
@@ -19,27 +33,32 @@ export async function getMapLocations() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching map locations:", error);
-    return [];
+    console.error("MAP DEBUG - Full query error:", error);
+    return { data: [], error: `Lỗi truy vấn: ${error.message} (code: ${error.code})` };
   }
-  return data;
+
+  console.log("MAP DEBUG - Full query returned:", data?.length, "rows");
+  return { data: data || [], error: null };
 }
 
 export async function addMapLocation(payload: any) {
   const supabase = createClient();
-  // We use .select() to force Supabase to return the inserted row.
-  // If RLS blocks it, it will return an empty array or an error.
+  
+  console.log("MAP DEBUG - Inserting payload:", JSON.stringify(payload));
+  
   const { data, error } = await supabase
     .from("map_locations")
     .insert(payload)
     .select();
 
+  console.log("MAP DEBUG - Insert result:", { data, error });
+
   if (error) {
-    return { success: false, error: error.message };
+    return { success: false, error: `Lỗi insert: ${error.message} (code: ${error.code}, details: ${error.details})` };
   }
   
   if (!data || data.length === 0) {
-    return { success: false, error: "Bị chặn bởi phân quyền (RLS). Vui lòng kiểm tra lại câu lệnh SQL tạo bảng." };
+    return { success: false, error: "Insert trả về rỗng - RLS đang chặn. Kiểm tra policy trên Supabase Dashboard." };
   }
 
   revalidatePath("/app/quan-tri/ban-do");

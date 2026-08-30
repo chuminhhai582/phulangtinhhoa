@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function MapCMSPage() {
-  const locations = await getMapLocations();
+  const result = await getMapLocations();
   
   // Fetch households for dropdown
   const supabase = createClient();
@@ -25,8 +25,16 @@ export default async function MapCMSPage() {
         <p className="text-muted-foreground mt-1">Ghim toạ độ các hộ nghề và điểm tham quan lên Bản đồ 3D.</p>
       </div>
 
+      {result.error && (
+        <div className="bg-red-50 border border-red-300 text-red-800 p-4 rounded-lg">
+          <p className="font-bold">⚠️ Lỗi truy vấn Database:</p>
+          <p className="text-sm mt-1 font-mono">{result.error}</p>
+          <p className="text-sm mt-2">Hãy gửi thông báo lỗi này cho developer để xử lý.</p>
+        </div>
+      )}
+
       <div className="bg-card border rounded-xl p-6 shadow-sm">
-        <MapLocationManager initialLocations={locations || []} households={households || []} />
+        <MapLocationManager initialLocations={result.data || []} households={households || []} />
       </div>
     </div>
   );
