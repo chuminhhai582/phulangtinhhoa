@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Metadata } from "next";
+import { createClient } from "@/lib/supabase/server";
+import { HeroBackgroundCarousel, type HeroMedia } from "@/components/home/HeroBackgroundCarousel";
 
 export const metadata: Metadata = {
   title: "Phù Lãng Tinh Hoa — Gốm thủ công Phù Lãng, Bắc Ninh",
@@ -31,31 +33,41 @@ const stats = [
   { value: "<3%", label: "tỷ lệ vỡ hỏng mục tiêu" },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = createClient();
+  const { data: setting } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", "hero_media")
+    .single();
+
+  const heroMedia: HeroMedia[] = setting?.value || [];
+
   return (
     <>
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--pl-eel)]/5 via-transparent to-[var(--pl-clay)]/5" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 relative">
+      <section className="relative overflow-hidden min-h-[600px] flex items-center">
+        <HeroBackgroundCarousel media={heroMedia} />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 relative z-30">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-[var(--pl-clay)]/10 text-[var(--pl-clay)] text-sm font-medium mb-6">
-              <span className="w-2 h-2 rounded-full bg-[var(--pl-jade)] mr-2 animate-pulse" />
+            <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md text-white text-sm font-medium mb-6 border border-white/20">
+              <span className="w-2 h-2 rounded-full bg-[var(--pl-jade)] mr-2 animate-pulse shadow-[0_0_8px_var(--pl-jade)]" />
               Mạng lưới sản xuất gốm phân tán
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold text-[var(--pl-char)] leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-heading font-bold text-white leading-tight drop-shadow-xl">
               Gốm Phù Lãng<br />
               <span className="text-[var(--pl-clay)]">Tinh Hoa</span> truyền thống
             </h1>
-            <p className="mt-6 text-lg sm:text-xl text-[var(--pl-char)]/70 leading-relaxed max-w-2xl">
+            <p className="mt-6 text-lg sm:text-xl text-white/90 leading-relaxed max-w-2xl drop-shadow-lg">
               Kết nối nghệ nhân gốm 700 năm tuổi với thị trường quốc tế. 
               Mỗi sản phẩm có hộ chiếu số — truy xuất từ bàn tay tạo hình đến mẻ nung cuối cùng.
             </p>
             <div className="flex flex-wrap gap-4 mt-8">
-              <Link href="/lien-he" className="px-8 py-4 bg-[var(--pl-clay)] text-white font-medium rounded-xl hover:bg-[var(--pl-eel)] transition-all hover:shadow-lg hover:shadow-[var(--pl-clay)]/20 text-base">
+              <Link href="/lien-he" className="px-8 py-4 bg-[var(--pl-clay)] text-white font-medium rounded-xl hover:bg-[var(--pl-eel)] transition-all hover:shadow-lg hover:shadow-[var(--pl-clay)]/20 text-base shadow-xl">
                 Gửi yêu cầu hợp tác
               </Link>
-              <Link href="/bo-suu-tap" className="px-8 py-4 border-2 border-[var(--pl-ash)] text-[var(--pl-char)] font-medium rounded-xl hover:border-[var(--pl-clay)] hover:text-[var(--pl-clay)] transition-colors text-base">
+              <Link href="/bo-suu-tap" className="px-8 py-4 border-2 border-white/70 text-white font-medium rounded-xl hover:border-white hover:bg-white/10 transition-colors text-base backdrop-blur-sm drop-shadow-md">
                 Xem bộ sưu tập
               </Link>
             </div>

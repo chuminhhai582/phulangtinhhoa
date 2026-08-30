@@ -34,6 +34,16 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center bg-card border rounded-xl shadow-sm p-6">
+        <div>
+          <h3 className="text-lg font-semibold">Cấu hình Giao diện Public</h3>
+          <p className="text-sm text-muted-foreground mt-1">Chỉnh sửa Hero Background, ảnh/video trên trang chủ</p>
+        </div>
+        <a href="/app/quan-tri/cau-hinh/giao-dien" className="px-4 py-2 border rounded-md hover:bg-secondary">
+          Quản lý giao diện
+        </a>
+      </div>
+
       <div className="bg-card border rounded-xl shadow-sm p-6">
         <h3 className="text-lg font-semibold mb-6 pb-4 border-b">Tham số vận hành cốt lõi (L5)</h3>
         
