@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/nang-luc", label: "Năng lực" },
   { href: "/bo-suu-tap", label: "Bộ sưu tập" },
   { href: "/nghe-nhan", label: "Nghệ nhân" },
+  { href: "/ban-do", label: "Bản đồ" },
   { href: "/quy-trinh-chat-luong", label: "Chất lượng" },
 ];
 

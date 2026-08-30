@@ -1,0 +1,40 @@
+import React from "react";
+import { Metadata } from "next";
+import { createClient } from "@/lib/supabase/server";
+import { InteractiveMap } from "./InteractiveMap";
+
+export const metadata: Metadata = {
+  title: "Bản đồ số Làng gốm Phù Lãng | Phù Lãng Tinh Hoa",
+  description: "Khám phá không gian 3D của làng gốm truyền thống Phù Lãng, Bắc Ninh. Xem chi tiết các lò gốm và điểm tham quan.",
+};
+
+export default async function MapPage() {
+  const supabase = createClient();
+  const { data: locations } = await supabase
+    .from("map_locations")
+    .select(`
+      *,
+      households (
+        id,
+        name,
+        description,
+        avatar_url
+      )
+    `);
+
+  return (
+    <div className="w-full flex flex-col bg-[var(--pl-ivory)]">
+      <div className="px-4 py-4 sm:px-6 lg:px-8 border-b border-[var(--pl-ash)]/30">
+        <h1 className="text-2xl font-bold font-heading text-[var(--pl-char)]">
+          Bản đồ Làng nghề Phù Lãng
+        </h1>
+        <p className="text-sm text-[var(--pl-char)]/70">
+          Khám phá các điểm đến, lò nung và hộ sản xuất trên không gian số 3D. Nhấn vào các biểu tượng để xem chi tiết.
+        </p>
+      </div>
+      
+      {/* Container for Map, height will be calculated inside InteractiveMap */}
+      <InteractiveMap locations={locations || []} />
+    </div>
+  );
+}
