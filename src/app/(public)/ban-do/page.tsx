@@ -12,7 +12,9 @@ export const metadata: Metadata = {
 
 export default async function MapPage() {
   const supabase = createClient();
-  const { data: locations } = await supabase
+  
+  // Simple query without nested joins that could fail
+  const { data: locations, error } = await supabase
     .from("map_locations")
     .select(`
       *,
@@ -20,10 +22,13 @@ export default async function MapPage() {
         id,
         name,
         bio_vi,
-        cover_image,
-        household_samples(image_url)
+        cover_image
       )
     `);
+
+  if (error) {
+    console.error("MAP PUBLIC ERROR:", error);
+  }
 
   return (
     <div className="w-full flex flex-col bg-[var(--pl-ivory)]">
@@ -35,8 +40,13 @@ export default async function MapPage() {
           Khám phá các điểm đến, lò nung và hộ sản xuất trên không gian số 3D. Nhấn vào các biểu tượng để xem chi tiết.
         </p>
       </div>
+
+      {error && (
+        <div className="mx-4 mt-4 bg-red-50 border border-red-300 text-red-800 p-3 rounded-lg text-sm">
+          ⚠️ Lỗi tải bản đồ: {error.message}
+        </div>
+      )}
       
-      {/* Container for Map, height will be calculated inside InteractiveMap */}
       <InteractiveMap locations={locations || []} />
     </div>
   );
