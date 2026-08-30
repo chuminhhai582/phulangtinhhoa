@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { Trash2, MapPin, Plus, Image as ImageIcon } from "lucide-react";
+import { Trash2, MapPin, Plus, Image as ImageIcon, Upload } from "lucide-react";
 import { addMapLocation, deleteMapLocation } from "./actions";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 type Props = {
   initialLocations: any[];
@@ -13,9 +14,11 @@ type Props = {
 
 export function MapLocationManager({ initialLocations, households }: Props) {
   const router = useRouter();
+  const supabase = createClient();
   const [locations, setLocations] = useState(initialLocations);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [uploading, setUploading] = useState(false);
   
   const [formType, setFormType] = useState<"household" | "custom">("household");
   const [lat, setLat] = useState("");
@@ -23,7 +26,46 @@ export function MapLocationManager({ initialLocations, households }: Props) {
   const [householdId, setHouseholdId] = useState("");
   const [customName, setCustomName] = useState("");
   const [customDesc, setCustomDesc] = useState("");
-  const [galleryUrlsText, setGalleryUrlsText] = useState(""); // Comma separated URLs
+  const [galleryUrlsText, setGalleryUrlsText] = useState(""); 
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Kích thước file vượt quá 10MB");
+      return;
+    }
+
+    setUploading(true);
+    const toastId = toast.loading("Đang tải ảnh lên...");
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `map/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('public_media')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('public_media')
+        .getPublicUrl(filePath);
+
+      // Append url to the text box
+      setGalleryUrlsText(prev => prev ? `${prev}, ${publicUrl}` : publicUrl);
+      toast.success("Tải ảnh lên thành công", { id: toastId });
+    } catch (err: any) {
+      toast.error(`Lỗi tải lên: ${err.message}`, { id: toastId });
+    } finally {
+      setUploading(false);
+      // Reset input
+      e.target.value = '';
+    }
+  };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +92,7 @@ export function MapLocationManager({ initialLocations, households }: Props) {
       household_id: formType === "household" ? householdId : null,
       custom_name: formType === "custom" ? customName : null,
       custom_description: formType === "custom" ? customDesc : null,
-      gallery_urls: gallery_urls, // Ensure it's an array
+      gallery_urls: gallery_urls, 
     };
 
     const res = await addMapLocation(payload);
@@ -61,7 +103,6 @@ export function MapLocationManager({ initialLocations, households }: Props) {
       setShowForm(false);
       setLocations([res.data, ...locations]);
       setLat(""); setLng(""); setCustomName(""); setCustomDesc(""); setGalleryUrlsText("");
-      // Force next.js to refresh server data
       router.refresh();
     } else {
       toast.error(res.error || "Có lỗi xảy ra");
@@ -139,11 +180,15 @@ export function MapLocationManager({ initialLocations, households }: Props) {
                 <textarea value={customDesc} onChange={(e) => setCustomDesc(e.target.value)} rows={3} className="w-full p-3 border rounded text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1 flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4" /> Link thư viện ảnh (Nhiều ảnh cách nhau bằng dấu phẩy)
+                <label className="block text-sm font-medium mb-1 flex items-center gap-2 justify-between">
+                  <span className="flex items-center gap-2"><ImageIcon className="w-4 h-4" /> Link thư viện ảnh</span>
+                  <label className="cursor-pointer flex items-center gap-1 text-[var(--pl-clay)] hover:underline text-xs bg-white px-2 py-1 border rounded">
+                    <Upload className="w-3 h-3" /> Tải ảnh lên
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
+                  </label>
                 </label>
-                <textarea value={galleryUrlsText} onChange={(e) => setGalleryUrlsText(e.target.value)} placeholder="https://anh1.jpg, https://anh2.jpg" rows={2} className="w-full p-3 border rounded text-sm" />
-                <p className="text-xs text-muted-foreground mt-1">Dùng tính năng này để tạo hiệu ứng 3D Arc xung quanh điểm ghim.</p>
+                <textarea value={galleryUrlsText} onChange={(e) => setGalleryUrlsText(e.target.value)} placeholder="https://anh1.jpg, https://anh2.jpg" rows={2} className="w-full p-3 border rounded text-sm mt-1" />
+                <p className="text-xs text-muted-foreground mt-1">Các link được cách nhau bằng dấu phẩy. Bạn có thể tự gõ link hoặc bấm nút Tải ảnh lên ở góc phải để hệ thống tự điền link.</p>
               </div>
             </div>
           )}
