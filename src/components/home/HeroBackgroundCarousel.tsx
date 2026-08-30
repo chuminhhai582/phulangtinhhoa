@@ -84,8 +84,8 @@ export function HeroBackgroundCarousel({ media }: Props) {
           </div>
         );
       })}
-      {/* Overlay to ensure text remains readable */}
-      <div className="absolute inset-0 bg-black/40 z-20" />
+      {/* Overlay to ensure text remains readable on any background */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30 z-20" />
     </div>
   );
 }
