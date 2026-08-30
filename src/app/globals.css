@@ -1,5 +1,3 @@
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -60,38 +58,41 @@
     --sidebar-border: 35 30% 71%;
     --sidebar-ring: 15 60% 44%;
   }
+
+  /* Dark mode: "Lò nung ban đêm" — nền tối ấm, tông gốm */
   .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --background: 12 12% 9%;
+    --foreground: 40 20% 90%;
+    --card: 12 10% 13%;
+    --card-foreground: 40 20% 90%;
+    --popover: 12 10% 13%;
+    --popover-foreground: 40 20% 90%;
+    --primary: 15 65% 52%; /* clay sáng hơn trên nền tối */
+    --primary-foreground: 12 12% 9%;
+    --secondary: 25 15% 22%;
+    --secondary-foreground: 40 20% 90%;
+    --muted: 25 15% 22%;
+    --muted-foreground: 30 12% 55%;
+    --accent: 25 15% 22%;
+    --accent-foreground: 40 20% 90%;
+    --destructive: 358 55% 50%;
+    --destructive-foreground: 40 20% 90%;
+    --border: 25 10% 20%;
+    --input: 25 10% 20%;
+    --ring: 15 65% 52%;
+    --chart-1: 15 65% 52%;
+    --chart-2: 33 72% 45%;
+    --chart-3: 127 17% 42%;
+    --chart-4: 28 65% 40%;
+    --chart-5: 358 55% 50%;
+    --sidebar: 12 10% 11%;
+    --sidebar-foreground: 40 20% 90%;
+    --sidebar-primary: 15 65% 52%;
+    --sidebar-primary-foreground: 12 12% 9%;
+    --sidebar-accent: 25 15% 18%;
+    --sidebar-accent-foreground: 40 20% 90%;
+    --sidebar-border: 25 10% 18%;
+    --sidebar-ring: 15 65% 52%;
   }
   * {
     @apply border-border outline-ring/50;
