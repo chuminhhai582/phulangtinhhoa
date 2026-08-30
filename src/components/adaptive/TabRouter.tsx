@@ -40,6 +40,7 @@ export interface TabRouterProps {
 export function TabRouter({ tabs, basePath, children }: TabRouterProps) {
   const pathname = usePathname();
   const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const [showDetail, setShowDetail] = useState(false);
 
   // Determine active tab based on pathname
   const activeHref = tabs.find(t => pathname === t.href)?.href
@@ -77,7 +78,6 @@ export function TabRouter({ tabs, basePath, children }: TabRouterProps) {
   }
 
   // Mobile: MasterDetail style
-  const [showDetail, setShowDetail] = useState(false);
 
   const MasterList = (
     <div className="flex flex-col gap-2 p-2">
