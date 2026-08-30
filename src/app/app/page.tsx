@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { AdaptiveTable } from "@/components/adaptive/AdaptiveTable";
 import { TrendingUp, AlertTriangle, CheckCircle, Package } from "lucide-react";

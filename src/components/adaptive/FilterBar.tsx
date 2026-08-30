@@ -19,7 +19,7 @@ interface FilterBarProps {
   onClear: () => void;
 }
 
-export function FilterBar({ filters, activeFilters, onChange, onClear }: FilterBarProps) {
+export function FilterBar({ filters, activeFilters = {}, onChange, onClear }: FilterBarProps) {
   const [isDesktop, setIsDesktop] = useState(true);
   const activeCount = Object.values(activeFilters).flat().length;
 
