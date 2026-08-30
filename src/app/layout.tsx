@@ -3,6 +3,7 @@ import { Be_Vietnam_Pro, Lora } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
+import { SyncProvider } from "@/hooks/use-sync";
 
 const beVietnamPro = Be_Vietnam_Pro({ 
   subsets: ["latin", "vietnamese"],
@@ -34,6 +35,7 @@ export default function RootLayout({
       <body className={cn(beVietnamPro.variable, lora.variable, "font-sans antialiased")}>
         {children}
         <Toaster position="top-center" />
+        <SyncProvider />
       </body>
     </html>
   );
