@@ -84,8 +84,8 @@ export default function CategoriesPage() {
       <div className="flex justify-between items-end">
         <FilterBar 
           filters={filterConfigs} 
-          onFilterChange={(f) => } 
-          onSearch={(s) => }
+          onFilterChange={(f) => {}} 
+          onSearch={(s) => {}}
         />
         <button 
           onClick={handleAddNew}

@@ -66,7 +66,7 @@ export default function DashboardPage() {
               columns={columns} 
               data={actionItems} 
               keyField="id" 
-              onRowClick={(row) => }
+              onRowClick={(row) => {}}
             />
           </div>
         </div>

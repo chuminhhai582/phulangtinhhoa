@@ -60,8 +60,8 @@ export default function OrdersPage() {
           <h2 className="text-2xl font-heading font-bold mb-2">Đơn hàng</h2>
           <FilterBar 
             filters={filterConfigs} 
-            onFilterChange={(f) => } 
-            onSearch={(s) => }
+            onFilterChange={(f) => {}} 
+            onSearch={(s) => {}}
           />
         </div>
         <button className="h-10 px-4 bg-primary text-primary-foreground rounded-md flex items-center text-sm font-medium hover:bg-primary/90 transition-colors">
