@@ -16,6 +16,14 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'nextjs.org',
+      },
+    ],
+  },
 };
 
 export default withSerwist(withNextIntl(nextConfig));
