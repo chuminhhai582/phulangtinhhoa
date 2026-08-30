@@ -46,10 +46,10 @@ export default async function HomePage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative overflow-hidden min-h-[600px] flex items-center">
+      <section className="relative overflow-hidden min-h-[600px] lg:min-h-[70vh] 2xl:min-h-[80vh] flex items-center">
         <HeroBackgroundCarousel media={heroMedia} />
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 relative z-30">
+        <div className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 relative z-30">
           <div className="max-w-3xl">
             <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md text-white text-sm font-medium mb-6 border border-white/20">
               <span className="w-2 h-2 rounded-full bg-[var(--pl-jade)] mr-2 animate-pulse shadow-[0_0_8px_var(--pl-jade)]" />
@@ -79,7 +79,7 @@ export default async function HomePage() {
 
       {/* Stats */}
       <section className="border-y border-[var(--pl-ash)]/30 bg-white/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
             {stats.map((s, i) => (
               <div key={i} className="text-center">
@@ -93,7 +93,7 @@ export default async function HomePage() {
 
       {/* Capabilities */}
       <section className="py-20 lg:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl sm:text-4xl font-heading font-bold text-[var(--pl-char)]">Năng lực mạng lưới</h2>
             <p className="mt-4 text-[var(--pl-char)]/60 text-lg">Từ kỹ thuật truyền thống đến quy trình kiểm soát chất lượng hiện đại</p>
@@ -117,7 +117,7 @@ export default async function HomePage() {
 
       {/* 6-Step Process */}
       <section className="py-20 lg:py-28 bg-white/50 border-y border-[var(--pl-ash)]/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl sm:text-4xl font-heading font-bold text-[var(--pl-char)]">Quy trình 6 bước</h2>
             <p className="mt-4 text-[var(--pl-char)]/60 text-lg">Từ yêu cầu đến giao hàng — mỗi bước có cổng chặn không thể vượt</p>
@@ -139,7 +139,7 @@ export default async function HomePage() {
 
       {/* Digital Passport CTA */}
       <section className="py-20 lg:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-br from-[var(--pl-eel)] to-[var(--pl-char)] rounded-3xl p-8 sm:p-12 lg:p-16 text-white relative overflow-hidden">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE4YzAtOS45NC04LjA2LTE4LTE4LTE4djM2YzkuOTQgMCAxOC04LjA2IDE4LTE4eiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
             <div className="relative max-w-2xl">
@@ -163,7 +163,7 @@ export default async function HomePage() {
 
       {/* CTA Contact */}
       <section className="py-20 lg:py-28 bg-white/50 border-t border-[var(--pl-ash)]/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-[var(--pl-char)]">Bắt đầu dự án cùng chúng tôi</h2>
           <p className="mt-4 text-[var(--pl-char)]/60 text-lg max-w-xl mx-auto">
             Gửi yêu cầu của bạn — chúng tôi sẽ phản hồi trong 48 giờ với đánh giá sơ bộ về khả năng thực hiện.
