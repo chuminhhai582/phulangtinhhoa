@@ -3,7 +3,8 @@
 import React, { useState, useRef, useMemo } from "react";
 import Map, { Marker, Popup, NavigationControl, FullscreenControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { MapPin, X, Search } from "lucide-react";
+import "./map.css"; // Custom map CSS for 3D Arc and Pulse
+import { MapPin, X, Search, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 
 type Props = {
@@ -71,6 +72,22 @@ export function InteractiveMap({ locations }: Props) {
     );
   }
 
+  // Helper function to extract gallery images for a location
+  const getGalleryImages = (loc: any) => {
+    if (!loc) return [];
+    if (loc.type === "household") {
+      const samples = loc.households?.household_samples || [];
+      const images = samples.map((s: any) => s.image_url).filter(Boolean);
+      // Include avatar as first image if exists
+      if (loc.households?.avatar_url) {
+        images.unshift(loc.households.avatar_url);
+      }
+      return images.slice(0, 7); // Limit to 7 images for arc
+    } else {
+      return loc.gallery_urls?.slice(0, 7) || [];
+    }
+  };
+
   return (
     <div className="w-full h-[calc(100vh-64px)] relative">
       {/* Search Bar Overlay */}
@@ -131,7 +148,10 @@ export function InteractiveMap({ locations }: Props) {
         mapboxAccessToken={mapboxToken}
         terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
         maxPitch={85}
-        onClick={() => setShowSearchResults(false)}
+        onClick={() => {
+          setShowSearchResults(false);
+          setPopupInfo(null); // click outside closes popup
+        }}
       >
         <NavigationControl position="top-right" />
         <FullscreenControl position="top-right" />
@@ -144,11 +164,15 @@ export function InteractiveMap({ locations }: Props) {
             anchor="bottom"
             onClick={(e) => handleMarkerClick(e, loc)}
           >
-            <div className="relative group cursor-pointer">
-              <div className="w-10 h-10 bg-[var(--pl-clay)] rounded-full flex items-center justify-center shadow-lg border-2 border-white transform transition-transform group-hover:scale-110">
+            <div className="relative group cursor-pointer z-0 hover:z-50">
+              {/* Pulse effect */}
+              <div className="map-marker-pulse"></div>
+              
+              <div className="w-10 h-10 bg-[var(--pl-clay)] rounded-full flex items-center justify-center shadow-lg border-2 border-white transform transition-transform group-hover:scale-110 relative z-10">
                 <MapPin className="w-6 h-6 text-white" />
               </div>
-              <div className="absolute top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-md text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl font-medium">
+              
+              <div className="absolute top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-md text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl font-medium z-20">
                 {loc.type === "household" ? loc.households?.name : loc.custom_name}
               </div>
             </div>
@@ -160,12 +184,42 @@ export function InteractiveMap({ locations }: Props) {
             anchor="top"
             longitude={popupInfo.lng}
             latitude={popupInfo.lat}
-            onClose={() => setPopupInfo(null)}
             closeButton={false}
-            className="z-50"
-            maxWidth="320px"
+            className="z-50 custom-popup"
+            style={{ padding: 0 }}
           >
-            <div className="p-1">
+            {/* 3D Arc Gallery overlay attached to popup */}
+            {getGalleryImages(popupInfo).length > 0 && (
+              <div className="arc-gallery-container">
+                {getGalleryImages(popupInfo).map((imgUrl: string, idx: number, arr: any[]) => {
+                  // Calculate angle for arc spread (e.g. from -60deg to +60deg depending on item count)
+                  const totalItems = arr.length;
+                  const spread = Math.min(180, totalItems * 30); // Max spread 180 degrees
+                  const startAngle = -spread / 2;
+                  const step = totalItems > 1 ? spread / (totalItems - 1) : 0;
+                  const angle = startAngle + (idx * step);
+                  
+                  // Animation delay so they pop in one by one
+                  const delay = idx * 0.1;
+                  
+                  return (
+                    <div 
+                      key={idx} 
+                      className="arc-card"
+                      style={{ 
+                        "--arc-angle": `${angle}deg`,
+                        animationDelay: `${delay}s`
+                      } as React.CSSProperties}
+                    >
+                      <img src={imgUrl} alt="Gallery" />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Normal Information Box */}
+            <div className="p-3 w-64 bg-white rounded-lg shadow-xl relative z-10 mt-10">
               <div className="flex justify-between items-start mb-3">
                 <h3 className="font-bold text-base text-[var(--pl-char)] pr-4">
                   {popupInfo.type === "household" ? popupInfo.households?.name : popupInfo.custom_name}
@@ -175,13 +229,6 @@ export function InteractiveMap({ locations }: Props) {
                 </button>
               </div>
               
-              {popupInfo.type === "household" && popupInfo.households?.avatar_url && (
-                <img src={popupInfo.households.avatar_url} alt="" className="w-full h-36 object-cover rounded-lg mb-3 shadow-sm" />
-              )}
-              {popupInfo.type === "custom" && popupInfo.custom_media_url && (
-                <img src={popupInfo.custom_media_url} alt="" className="w-full h-36 object-cover rounded-lg mb-3 shadow-sm" />
-              )}
-
               <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
                 {popupInfo.type === "household" ? popupInfo.households?.description : popupInfo.custom_description}
               </p>

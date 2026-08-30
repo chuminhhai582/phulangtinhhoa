@@ -3,6 +3,8 @@ import { getMapLocations } from "./actions";
 import { MapLocationManager } from "./MapLocationManager";
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Quản lý Bản đồ | Phù Lãng Tinh Hoa",
 };

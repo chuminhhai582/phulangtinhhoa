@@ -26,17 +26,24 @@ export async function getMapLocations() {
 
 export async function addMapLocation(payload: any) {
   const supabase = createClient();
-  const { error } = await supabase
+  // We use .select() to force Supabase to return the inserted row.
+  // If RLS blocks it, it will return an empty array or an error.
+  const { data, error } = await supabase
     .from("map_locations")
-    .insert(payload);
+    .insert(payload)
+    .select();
 
   if (error) {
     return { success: false, error: error.message };
   }
+  
+  if (!data || data.length === 0) {
+    return { success: false, error: "Bị chặn bởi phân quyền (RLS). Vui lòng kiểm tra lại câu lệnh SQL tạo bảng." };
+  }
 
   revalidatePath("/app/quan-tri/ban-do");
   revalidatePath("/ban-do");
-  return { success: true };
+  return { success: true, data: data[0] };
 }
 
 export async function deleteMapLocation(id: string) {

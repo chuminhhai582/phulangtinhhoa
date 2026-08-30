@@ -1,0 +1,81 @@
+/* Pulse Effect for Map Marker */
+.map-marker-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  background-color: var(--pl-clay);
+  border-radius: 50%;
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* 3D Arc Gallery Container */
+.arc-gallery-container {
+  position: absolute;
+  top: -80px; /* Adjust based on popup center */
+  left: 50%;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  pointer-events: none; /* Let clicks pass through empty space */
+}
+
+/* Individual Arc Card */
+.arc-card {
+  position: absolute;
+  top: 0;
+  left: -50px; /* Half of width */
+  width: 100px;
+  height: 140px;
+  background-color: white;
+  border: 2px solid white;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  transform-origin: 50% 120%; /* Origin is below the card to form an arc */
+  transition: transform 0.3s ease, filter 0.3s ease;
+  pointer-events: auto; /* Re-enable clicks for the card itself */
+  overflow: hidden;
+  cursor: pointer;
+  
+  /* Initial state for animation */
+  opacity: 0;
+  transform: rotate(var(--arc-angle)) translateY(50px) scale(0.5);
+  animation: arc-pop-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.arc-card:hover {
+  z-index: 100;
+  transform: rotate(var(--arc-angle)) translateY(-150px) scale(1.1) !important;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+}
+
+.arc-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes arc-pop-in {
+  from {
+    opacity: 0;
+    transform: rotate(var(--arc-angle)) translateY(0px) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--arc-angle)) translateY(-140px) scale(1);
+  }
+}

@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { Trash2, MapPin, Plus } from "lucide-react";
+import { Trash2, MapPin, Plus, Image as ImageIcon } from "lucide-react";
 import { addMapLocation, deleteMapLocation } from "./actions";
+import { useRouter } from "next/navigation";
 
 type Props = {
   initialLocations: any[];
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function MapLocationManager({ initialLocations, households }: Props) {
+  const router = useRouter();
   const [locations, setLocations] = useState(initialLocations);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -21,6 +23,7 @@ export function MapLocationManager({ initialLocations, households }: Props) {
   const [householdId, setHouseholdId] = useState("");
   const [customName, setCustomName] = useState("");
   const [customDesc, setCustomDesc] = useState("");
+  const [galleryUrlsText, setGalleryUrlsText] = useState(""); // Comma separated URLs
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +41,8 @@ export function MapLocationManager({ initialLocations, households }: Props) {
     }
 
     setLoading(true);
+    const gallery_urls = galleryUrlsText.split(",").map(s => s.trim()).filter(Boolean);
+
     const payload = {
       lat: parseFloat(lat),
       lng: parseFloat(lng),
@@ -45,6 +50,7 @@ export function MapLocationManager({ initialLocations, households }: Props) {
       household_id: formType === "household" ? householdId : null,
       custom_name: formType === "custom" ? customName : null,
       custom_description: formType === "custom" ? customDesc : null,
+      gallery_urls: gallery_urls, // Ensure it's an array
     };
 
     const res = await addMapLocation(payload);
@@ -53,11 +59,12 @@ export function MapLocationManager({ initialLocations, households }: Props) {
     if (res.success) {
       toast.success("Thêm địa điểm thành công");
       setShowForm(false);
-      // Giả lập push vào mảng để UI cập nhật lẹ
-      setLocations([{ ...payload, id: Math.random().toString(), created_at: new Date().toISOString() }, ...locations]);
-      setLat(""); setLng(""); setCustomName(""); setCustomDesc("");
+      setLocations([res.data, ...locations]);
+      setLat(""); setLng(""); setCustomName(""); setCustomDesc(""); setGalleryUrlsText("");
+      // Force next.js to refresh server data
+      router.refresh();
     } else {
-      toast.error("Lỗi: " + res.error);
+      toast.error(res.error || "Có lỗi xảy ra");
     }
   };
 
@@ -70,6 +77,7 @@ export function MapLocationManager({ initialLocations, households }: Props) {
     if (res.success) {
       toast.success("Đã xoá địa điểm");
       setLocations(locations.filter(l => l.id !== id));
+      router.refresh();
     } else {
       toast.error("Lỗi: " + res.error);
     }
@@ -130,18 +138,25 @@ export function MapLocationManager({ initialLocations, households }: Props) {
                 <label className="block text-sm font-medium mb-1">Mô tả ngắn</label>
                 <textarea value={customDesc} onChange={(e) => setCustomDesc(e.target.value)} rows={3} className="w-full p-3 border rounded text-sm" />
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4" /> Link thư viện ảnh (Nhiều ảnh cách nhau bằng dấu phẩy)
+                </label>
+                <textarea value={galleryUrlsText} onChange={(e) => setGalleryUrlsText(e.target.value)} placeholder="https://anh1.jpg, https://anh2.jpg" rows={2} className="w-full p-3 border rounded text-sm" />
+                <p className="text-xs text-muted-foreground mt-1">Dùng tính năng này để tạo hiệu ứng 3D Arc xung quanh điểm ghim.</p>
+              </div>
             </div>
           )}
 
           <div className="flex justify-end pt-2">
-            <button type="submit" disabled={loading} className="px-6 py-2 bg-primary text-primary-foreground rounded font-medium disabled:opacity-50">
+            <button type="submit" disabled={loading} className="px-6 py-2 bg-[var(--pl-clay)] text-white rounded font-medium disabled:opacity-50">
               {loading ? "Đang lưu..." : "Lưu toạ độ"}
             </button>
           </div>
         </form>
       )}
 
-      <div className="border rounded-lg divide-y">
+      <div className="border rounded-lg divide-y bg-white">
         {locations.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">Chưa có điểm nào trên bản đồ.</div>
         ) : locations.map((loc) => (
@@ -157,10 +172,13 @@ export function MapLocationManager({ initialLocations, households }: Props) {
                 <div className="text-sm text-muted-foreground flex gap-3 mt-1">
                   <span className="capitalize border px-1.5 rounded text-xs">{loc.type}</span>
                   <span>{loc.lat}, {loc.lng}</span>
+                  {loc.gallery_urls?.length > 0 && (
+                    <span className="text-blue-500 font-medium">({loc.gallery_urls.length} ảnh)</span>
+                  )}
                 </div>
               </div>
             </div>
-            <button onClick={() => handleDelete(loc.id)} disabled={loading} className="p-2 text-red-500 hover:bg-red-50 rounded-md">
+            <button onClick={() => handleDelete(loc.id)} disabled={loading} className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors">
               <Trash2 className="w-5 h-5" />
             </button>
           </div>

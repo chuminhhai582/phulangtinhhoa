@@ -3,6 +3,8 @@ import { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { InteractiveMap } from "./InteractiveMap";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Bản đồ số Làng gốm Phù Lãng | Phù Lãng Tinh Hoa",
   description: "Khám phá không gian 3D của làng gốm truyền thống Phù Lãng, Bắc Ninh. Xem chi tiết các lò gốm và điểm tham quan.",
@@ -18,7 +20,8 @@ export default async function MapPage() {
         id,
         name,
         description,
-        avatar_url
+        avatar_url,
+        household_samples(image_url)
       )
     `);
 
