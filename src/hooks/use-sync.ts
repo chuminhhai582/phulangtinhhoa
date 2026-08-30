@@ -1,3 +1,4 @@
+"use client";
 import { useEffect } from 'react';
 import { db } from '@/lib/db/dexie';
 import { createClient } from '@/lib/supabase/client';
