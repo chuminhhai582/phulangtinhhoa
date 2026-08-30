@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Camera, UploadCloud, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import imageCompression from "browser-image-compression";
@@ -23,6 +23,16 @@ export function PhotoCapture({
   const [preview, setPreview] = useState<string | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -31,8 +41,14 @@ export function PhotoCapture({
     try {
       setIsCompressing(true);
       
+      // Revoke old URL before creating new one
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+      
       // Tạo preview tạm thời
       const previewUrl = URL.createObjectURL(file);
+      previewUrlRef.current = previewUrl;
       setPreview(previewUrl);
 
       // Nén ảnh theo cấu hình (mặc định ≤ 1600px, ≤ 400KB)
@@ -52,12 +68,16 @@ export function PhotoCapture({
     }
   };
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
     setPreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
+  }, []);
 
   const triggerInput = () => {
     fileInputRef.current?.click();

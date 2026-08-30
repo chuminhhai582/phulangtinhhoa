@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 const beVietnamPro = Be_Vietnam_Pro({ 
   subsets: ["latin", "vietnamese"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
   variable: "--font-sans",
 });
 
 const lora = Lora({
   subsets: ["latin", "vietnamese"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
   variable: "--font-heading",
 });
 

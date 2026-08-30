@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Save } from "lucide-react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 export interface StepFormProps {
   steps: {
@@ -18,15 +19,8 @@ export interface StepFormProps {
 }
 
 export function StepForm({ steps, onSave, onSubmit, isSubmitting }: StepFormProps) {
-  const [isDesktop, setIsDesktop] = useState(true);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024); // lg
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   if (isDesktop) {
     return (

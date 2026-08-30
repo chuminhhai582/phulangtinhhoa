@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 export interface FilterOption {
   id: string;
@@ -25,15 +26,8 @@ interface FilterBarProps {
 }
 
 export function FilterBar({ filters, activeFilters = {}, onChange, onClear, onFilterChange, onSearch }: FilterBarProps) {
-  const [isDesktop, setIsDesktop] = useState(true);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   const activeCount = Object.values(activeFilters).flat().length;
-
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 768); // md
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const toggleFilter = (filterId: string, value: string) => {
     const current = activeFilters[filterId] || [];
@@ -53,7 +47,7 @@ export function FilterBar({ filters, activeFilters = {}, onChange, onClear, onFi
     else if (onFilterChange) onFilterChange({});
   };
 
-  const FilterContent = () => (
+  const filterContent = (
     <div className="flex flex-col gap-6">
       {filters.map(group => (
         <div key={group.id} className="space-y-3">
@@ -150,7 +144,7 @@ export function FilterBar({ filters, activeFilters = {}, onChange, onClear, onFi
           <SheetHeader className="mb-6 border-b pb-4">
             <SheetTitle>Bộ lọc</SheetTitle>
           </SheetHeader>
-          <FilterContent />
+          {filterContent}
         </SheetContent>
       </Sheet>
 

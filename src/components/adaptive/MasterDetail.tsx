@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface MasterDetailProps {
   master: React.ReactNode;
@@ -14,14 +15,7 @@ interface MasterDetailProps {
 }
 
 export function MasterDetail({ master, detail, isDetailOpen, onBack, masterTitle = "Danh sách" }: MasterDetailProps) {
-  const [isDesktop, setIsDesktop] = useState(true);
-
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1440); // xl breakpoint theo blueprint
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const isDesktop = useMediaQuery("(min-width: 1440px)");
 
   if (isDesktop) {
     return (

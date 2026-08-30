@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 
@@ -20,24 +20,19 @@ export interface AdaptiveTableProps<T> {
 }
 
 export function AdaptiveTable<T extends Record<string, any>>({ data, columns, keyField = "id", onRowClick }: AdaptiveTableProps<T>) {
-  const [isDesktop, setIsDesktop] = useState(true);
-
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024); // lg
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   const renderCell = (col: Column<T>, row: T) => {
     const value = row[col.key];
     if (col.render) return col.render(value, row);
     return String(value ?? "—");
   };
 
-  if (isDesktop) {
-    return (
-      <div className="rounded-md border bg-card">
+  const primaryCol = columns.find(c => c.isPrimary) || columns[0];
+  const secondaryCols = columns.filter(c => c !== primaryCol && !c.hideOnMobile).slice(0, 3);
+
+  return (
+    <>
+      {/* Desktop: Table — hidden dưới lg */}
+      <div className="hidden lg:block rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -70,39 +65,35 @@ export function AdaptiveTable<T extends Record<string, any>>({ data, columns, ke
           </TableBody>
         </Table>
       </div>
-    );
-  }
 
-  // Mobile View: Danh sách thẻ
-  const primaryCol = columns.find(c => c.isPrimary) || columns[0];
-  const secondaryCols = columns.filter(c => c !== primaryCol && !c.hideOnMobile).slice(0, 3);
-
-  return (
-    <div className="flex flex-col gap-3">
-      {data.map((row) => (
-        <Card 
-          key={row[keyField]} 
-          className={`p-4 flex flex-col gap-2 ${onRowClick ? 'cursor-pointer active:scale-[0.98] transition-transform' : ''}`}
-          onClick={() => onRowClick?.(row)}
-        >
-          <div className="flex justify-between items-start">
-            <span className="font-semibold text-base">{renderCell(primaryCol, row)}</span>
+      {/* Mobile: Card list — ẩn từ lg trở lên */}
+      <div className="lg:hidden flex flex-col gap-3">
+        {data.map((row) => (
+          <Card 
+            key={row[keyField]} 
+            className={`p-4 flex flex-col gap-2 ${onRowClick ? 'cursor-pointer active:scale-[0.98] transition-transform motion-reduce:transition-none' : ''}`}
+            onClick={() => onRowClick?.(row)}
+          >
+            <div className="flex justify-between items-start">
+              <span className="font-semibold text-base">{renderCell(primaryCol, row)}</span>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
+              {secondaryCols.map((col) => (
+                <div key={col.key} className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider">{col.label}</span>
+                  <span>{renderCell(col, row)}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        ))}
+        {data.length === 0 && (
+          <div className="text-center p-8 text-muted-foreground bg-muted/20 rounded-lg">
+            Không có dữ liệu.
           </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
-            {secondaryCols.map((col) => (
-              <div key={col.key} className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider">{col.label}</span>
-                <span>{renderCell(col, row)}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      ))}
-      {data.length === 0 && (
-        <div className="text-center p-8 text-muted-foreground bg-muted/20 rounded-lg">
-          Không có dữ liệu.
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 }
+

@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { ChevronRight } from "lucide-react";
 import { MasterDetail } from "./MasterDetail";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 /* ────────────────────────────────────────────
  * TabItem: Tab có href → điều hướng URL
@@ -38,14 +39,7 @@ export interface TabRouterProps {
 
 export function TabRouter({ tabs, basePath, children }: TabRouterProps) {
   const pathname = usePathname();
-  const [isDesktop, setIsDesktop] = useState(true);
-
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   // Determine active tab based on pathname
   const activeHref = tabs.find(t => pathname === t.href)?.href
@@ -125,15 +119,8 @@ export interface SectionTabsProps {
 }
 
 export function SectionTabs({ tabs, defaultTab, title = "Mục lục" }: SectionTabsProps) {
-  const [isDesktop, setIsDesktop] = useState(true);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [activeTab, setActiveTab] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   if (isDesktop) {
     return (

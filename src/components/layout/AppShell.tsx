@@ -35,6 +35,13 @@ export function AppShell({ children, userRole = "artisan", menuItems = defaultMe
 
   return (
     <div className="flex h-[100dvh] w-full bg-background overflow-hidden">
+      {/* Skip link cho accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md focus:text-sm focus:font-medium"
+      >
+        Nhảy tới nội dung chính
+      </a>
       {/* Desktop & Tablet Sidebar */}
       <aside className="hidden md:flex flex-col bg-card border-r transition-[width] duration-200 ease-out motion-reduce:transition-none w-[64px] lg:w-[240px] z-20 group">
         <div className="h-16 flex items-center px-4 border-b shrink-0">
@@ -88,7 +95,7 @@ export function AppShell({ children, userRole = "artisan", menuItems = defaultMe
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6 relative scroll-smooth">
+        <div id="main-content" className="flex-1 overflow-y-auto p-4 md:p-6 pb-24 md:pb-6 relative scroll-smooth">
           {children}
         </div>
       </main>
