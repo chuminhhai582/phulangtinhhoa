@@ -221,9 +221,50 @@ export function InteractiveMap({ locations }: Props) {
             </div>
           )}
         </div>
+
+        {/* Location List Panel */}
+        {locations.length > 0 && !searchQuery && (
+          <div className="mt-3 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-[var(--pl-ash)]/30 overflow-hidden max-h-[calc(100vh-220px)]">
+            <div className="px-4 py-3 bg-[var(--pl-clay)]/10 border-b border-[var(--pl-ash)]/20 flex items-center justify-between">
+              <span className="text-sm font-semibold text-[var(--pl-char)] flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[var(--pl-clay)]" />
+                Điểm tham quan ({locations.length})
+              </span>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(100vh-280px)] divide-y divide-[var(--pl-ash)]/10">
+              {locations.map(loc => {
+                const name = loc.type === "household" ? loc.households?.name : loc.custom_name;
+                const isActive = popupInfo?.id === loc.id;
+                return (
+                  <button
+                    key={loc.id}
+                    onClick={() => handleSearchResultClick(loc)}
+                    className={`w-full text-left px-4 py-3 transition-colors flex items-center gap-3 ${
+                      isActive 
+                        ? "bg-[var(--pl-clay)]/10 border-l-4 border-[var(--pl-clay)]" 
+                        : "hover:bg-[var(--pl-clay)]/5 border-l-4 border-transparent"
+                    }`}
+                  >
+                    <div className={`p-1.5 rounded-full shrink-0 ${isActive ? "bg-[var(--pl-clay)]" : "bg-[var(--pl-clay)]/15"}`}>
+                      <MapPin className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[var(--pl-clay)]"}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className={`text-sm truncate ${isActive ? "font-bold text-[var(--pl-clay)]" : "font-medium text-[var(--pl-char)]"}`}>
+                        {name || "Không tên"}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {loc.type === "household" ? "Hộ nghề" : "Địa điểm"}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Debug: Show location count */}
+      {/* Location count badge */}
       <div className="absolute bottom-4 left-4 z-10 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm">
         {locations.length} điểm trên bản đồ
       </div>
