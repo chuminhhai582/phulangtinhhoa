@@ -9,17 +9,22 @@ import { Badge } from "@/components/ui/badge";
 export interface FilterOption {
   id: string;
   label: string;
+  type?: string;
   options: { value: string; label: string }[];
 }
 
 interface FilterBarProps {
   filters: FilterOption[];
-  activeFilters: Record<string, string[]>;
-  onChange: (filterId: string, values: string[]) => void;
-  onClear: () => void;
+  activeFilters?: Record<string, string[]>;
+  onChange?: (filterId: string, values: string[]) => void;
+  onClear?: () => void;
+  /** Alias used by pages — maps to onChange */
+  onFilterChange?: (filters: Record<string, string[]>) => void;
+  /** Alias used by pages — maps to onClear */
+  onSearch?: (search: string) => void;
 }
 
-export function FilterBar({ filters, activeFilters = {}, onChange, onClear }: FilterBarProps) {
+export function FilterBar({ filters, activeFilters = {}, onChange, onClear, onFilterChange, onSearch }: FilterBarProps) {
   const [isDesktop, setIsDesktop] = useState(true);
   const activeCount = Object.values(activeFilters).flat().length;
 
@@ -32,11 +37,20 @@ export function FilterBar({ filters, activeFilters = {}, onChange, onClear }: Fi
 
   const toggleFilter = (filterId: string, value: string) => {
     const current = activeFilters[filterId] || [];
-    if (current.includes(value)) {
-      onChange(filterId, current.filter(v => v !== value));
-    } else {
-      onChange(filterId, [...current, value]);
+    const newValues = current.includes(value)
+      ? current.filter(v => v !== value)
+      : [...current, value];
+    
+    if (onChange) {
+      onChange(filterId, newValues);
+    } else if (onFilterChange) {
+      onFilterChange({ ...activeFilters, [filterId]: newValues });
     }
+  };
+
+  const handleClear = () => {
+    if (onClear) onClear();
+    else if (onFilterChange) onFilterChange({});
   };
 
   const FilterContent = () => (
@@ -64,7 +78,7 @@ export function FilterBar({ filters, activeFilters = {}, onChange, onClear }: Fi
       
       {activeCount > 0 && (
         <div className="pt-4 border-t mt-2">
-          <Button variant="ghost" onClick={onClear} className="w-full text-destructive">
+          <Button variant="ghost" onClick={handleClear} className="w-full text-destructive">
             Xóa bộ lọc
           </Button>
         </div>
@@ -107,7 +121,7 @@ export function FilterBar({ filters, activeFilters = {}, onChange, onClear }: Fi
         ))}
 
         {activeCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={onClear} className="ml-auto text-destructive h-7 px-2">
+          <Button variant="ghost" size="sm" onClick={handleClear} className="ml-auto text-destructive h-7 px-2">
             Xóa ({activeCount})
           </Button>
         )}
@@ -119,8 +133,11 @@ export function FilterBar({ filters, activeFilters = {}, onChange, onClear }: Fi
   return (
     <div className="flex items-center gap-2">
       <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" className="gap-2 relative">
+        <SheetTrigger
+          render={
+            <Button variant="outline" className="gap-2 relative" />
+          }
+        >
             <Filter className="w-4 h-4" />
             Lọc
             {activeCount > 0 && (
@@ -128,7 +145,6 @@ export function FilterBar({ filters, activeFilters = {}, onChange, onClear }: Fi
                 {activeCount}
               </span>
             )}
-          </Button>
         </SheetTrigger>
         <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
           <SheetHeader className="mb-6 border-b pb-4">

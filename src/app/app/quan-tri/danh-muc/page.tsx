@@ -105,8 +105,8 @@ export default function CategoriesPage() {
       </div>
 
       <ResponsiveDialog
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        open={isOpen}
+        onOpenChange={(open) => { if (!open) setIsOpen(false); }}
         title={editingItem ? "Sửa danh mục" : "Thêm danh mục mới"}
       >
         <div className="space-y-4 pt-4">
