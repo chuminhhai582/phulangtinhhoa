@@ -79,8 +79,8 @@ export function InteractiveMap({ locations }: Props) {
       const samples = loc.households?.household_samples || [];
       const images = samples.map((s: any) => s.image_url).filter(Boolean);
       // Include avatar as first image if exists
-      if (loc.households?.avatar_url) {
-        images.unshift(loc.households.avatar_url);
+      if (loc.households?.cover_image) {
+        images.unshift(loc.households.cover_image);
       }
       return images.slice(0, 7); // Limit to 7 images for arc
     } else {
@@ -230,7 +230,7 @@ export function InteractiveMap({ locations }: Props) {
               </div>
               
               <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                {popupInfo.type === "household" ? popupInfo.households?.description : popupInfo.custom_description}
+                {popupInfo.type === "household" ? popupInfo.households?.bio_vi : popupInfo.custom_description}
               </p>
 
               {popupInfo.type === "household" && (

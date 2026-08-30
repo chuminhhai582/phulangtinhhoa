@@ -19,8 +19,8 @@ export default async function MapPage() {
       households (
         id,
         name,
-        description,
-        avatar_url,
+        bio_vi,
+        cover_image,
         household_samples(image_url)
       )
     `);

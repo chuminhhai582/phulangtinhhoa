@@ -26,8 +26,8 @@ export async function getMapLocations() {
       *,
       households (
         name,
-        description,
-        avatar_url
+        bio_vi,
+        cover_image
       )
     `)
     .order("created_at", { ascending: false });
