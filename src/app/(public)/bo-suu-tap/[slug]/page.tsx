@@ -17,16 +17,8 @@ export default function CollectionDetailPage({ params }: { params: { slug: strin
   };
 
   return (
-    <div className="min-h-screen bg-[var(--pl-ivory)]">
-      <nav className="sticky top-0 z-50 bg-[var(--pl-ivory)]/95 backdrop-blur-sm border-b border-[var(--pl-ash)]/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[var(--pl-clay)] rounded-lg flex items-center justify-center text-white font-bold">P</div>
-            <span className="font-heading font-bold text-xl text-[var(--pl-char)]">Phù Lãng Tinh Hoa</span>
-          </Link>
-          <Link href="/bo-suu-tap" className="text-sm text-[var(--pl-char)]/60 hover:text-[var(--pl-clay)] transition-colors">← Tất cả bộ sưu tập</Link>
-        </div>
-      </nav>
+    <>
+      
 
       <section className="py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,6 +61,6 @@ export default function CollectionDetailPage({ params }: { params: { slug: strin
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }

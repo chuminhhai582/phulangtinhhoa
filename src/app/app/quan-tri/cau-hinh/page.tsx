@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { toast } from "sonner";
 import { Save } from "lucide-react";
 
 const mockSettings = [
@@ -23,7 +24,7 @@ export default function SettingsPage() {
     // Giả lập API
     setTimeout(() => {
       setIsSaving(false);
-      alert("Đã lưu cấu hình thành công!");
+      toast.success("Đã lưu cấu hình thành công!");
     }, 1000);
   };
 

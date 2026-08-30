@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Be_Vietnam_Pro, Lora } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Toaster } from "sonner";
 
 const beVietnamPro = Be_Vietnam_Pro({ 
   subsets: ["latin", "vietnamese"],
@@ -32,6 +33,7 @@ export default function RootLayout({
     <html lang="vi">
       <body className={cn(beVietnamPro.variable, lora.variable, "font-sans antialiased")}>
         {children}
+        <Toaster position="top-center" />
       </body>
     </html>
   );

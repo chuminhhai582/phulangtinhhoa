@@ -145,8 +145,8 @@ export default function ArtisanNetworkPage() {
       {!isMatchingMode && (
         <FilterBar 
           filters={filterConfigs} 
-          onFilterChange={(f) => console.log(f)} 
-          onSearch={(s) => console.log(s)}
+          onFilterChange={(f) => } 
+          onSearch={(s) => }
         />
       )}
 

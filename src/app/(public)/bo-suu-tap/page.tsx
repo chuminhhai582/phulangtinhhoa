@@ -15,16 +15,8 @@ const collections = [
 
 export default function CollectionsPage() {
   return (
-    <div className="min-h-screen bg-[var(--pl-ivory)]">
-      <nav className="sticky top-0 z-50 bg-[var(--pl-ivory)]/95 backdrop-blur-sm border-b border-[var(--pl-ash)]/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[var(--pl-clay)] rounded-lg flex items-center justify-center text-white font-bold">P</div>
-            <span className="font-heading font-bold text-xl text-[var(--pl-char)]">Phù Lãng Tinh Hoa</span>
-          </Link>
-          <Link href="/lien-he" className="px-5 py-2.5 bg-[var(--pl-clay)] text-white text-sm font-medium rounded-lg hover:bg-[var(--pl-eel)] transition-colors">Liên hệ</Link>
-        </div>
-      </nav>
+    <>
+      
 
       <section className="py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -58,6 +50,6 @@ export default function CollectionsPage() {
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }

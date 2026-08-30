@@ -16,6 +16,12 @@
       "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -26,10 +32,6 @@
     {
       "name": "Việc cần làm",
       "url": "/app"
-    },
-    {
-      "name": "Quét mã sản phẩm",
-      "url": "/app/tra-cuu"
     }
   ]
 }

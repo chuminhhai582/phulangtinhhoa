@@ -4,13 +4,14 @@ import React, { useState } from "react";
 import { ArrowLeft, AlertOctagon, CheckCircle2, RotateCcw, Tag, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function NonconformityDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [decision, setDecision] = useState<string | null>(null);
 
   const handleSave = () => {
-    alert(`Đã lưu quyết định xử lý: ${decision}`);
+    toast.success(`Đã lưu quyết định xử lý: ${decision}`);
     router.push('/app/chat-luong');
   };
 
