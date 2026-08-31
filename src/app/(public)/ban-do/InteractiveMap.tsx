@@ -240,7 +240,9 @@ export function InteractiveMap({ locations }: Props) {
 
   // Toggle 3D mode
   const toggle3D = useCallback(() => {
-    const map = mapRef.current;
+    const mapWrapper = mapRef.current;
+    if (!mapWrapper) return;
+    const map = mapWrapper.getMap(); // Get native Mapbox GL instance
     if (!map) return;
     const next3D = !is3D;
     setIs3D(next3D);
@@ -264,7 +266,7 @@ export function InteractiveMap({ locations }: Props) {
           type: "sky",
           paint: {
             "sky-type": "atmosphere",
-            "sky-atmosphere-sun": [0.0, 0.0],
+            "sky-atmosphere-sun": [0.0, 90.0],
             "sky-atmosphere-sun-intensity": 15,
           },
         });
@@ -297,7 +299,7 @@ export function InteractiveMap({ locations }: Props) {
       map.easeTo({ pitch: 60, bearing: -20, duration: 1000 });
     } else {
       // Disable 3D
-      map.setTerrain(null);
+      if (map.getTerrain()) map.setTerrain(null);
       if (map.getLayer("sky")) map.removeLayer("sky");
       if (map.getLayer("3d-buildings")) map.removeLayer("3d-buildings");
 
