@@ -2,10 +2,25 @@
 
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { Trash2, MapPin, Plus, Image as ImageIcon, Upload, Pencil } from "lucide-react";
+import { Trash2, MapPin, Plus, Image as ImageIcon, Upload, Pencil, UtensilsCrossed, Flame, Landmark, Camera } from "lucide-react";
 import { addMapLocation, updateMapLocation, deleteMapLocation } from "./actions";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+
+// ===== Category config =====
+type CategoryKey = "nha_hang" | "lo_gom" | "di_tich" | "check_in" | "dia_diem";
+
+const CATEGORY_OPTIONS: { value: CategoryKey; label: string; icon: React.ElementType; color: string }[] = [
+  { value: "lo_gom",   label: "Lò gốm / Xưởng gốm",       icon: Flame,            color: "#f97316" },
+  { value: "nha_hang", label: "Nhà hàng / Quán ăn",         icon: UtensilsCrossed,  color: "#22c55e" },
+  { value: "di_tich",  label: "Di tích / Công trình lịch sử", icon: Landmark,       color: "#8b5cf6" },
+  { value: "check_in", label: "Điểm check-in / Chụp ảnh",   icon: Camera,           color: "#ec4899" },
+  { value: "dia_diem", label: "Địa điểm chung",             icon: MapPin,            color: "#c2714f" },
+];
+
+function getCategoryOption(val: string | null | undefined) {
+  return CATEGORY_OPTIONS.find(o => o.value === val) || CATEGORY_OPTIONS[4]; // default dia_diem
+}
 
 type Props = {
   initialLocations: any[];
@@ -28,10 +43,15 @@ export function MapLocationManager({ initialLocations, households }: Props) {
   const [customName, setCustomName] = useState("");
   const [customDesc, setCustomDesc] = useState("");
   const [galleryUrlsText, setGalleryUrlsText] = useState(""); 
+  const [category, setCategory] = useState<CategoryKey>("dia_diem");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [uploadingThumb, setUploadingThumb] = useState(false);
 
   const resetForm = () => {
     setFormType("household");
     setLat(""); setLng(""); setHouseholdId(""); setCustomName(""); setCustomDesc(""); setGalleryUrlsText("");
+    setCategory("dia_diem");
+    setThumbnailUrl("");
     setEditingId(null);
   }
 
@@ -73,6 +93,43 @@ export function MapLocationManager({ initialLocations, households }: Props) {
     }
   };
 
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Kích thước file vượt quá 5MB");
+      return;
+    }
+
+    setUploadingThumb(true);
+    const toastId = toast.loading("Đang tải ảnh đại diện...");
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `thumb-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `map/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('public_media')
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('public_media')
+        .getPublicUrl(filePath);
+
+      setThumbnailUrl(publicUrl);
+      toast.success("Tải ảnh đại diện thành công", { id: toastId });
+    } catch (err: any) {
+      toast.error(`Lỗi tải lên: ${err.message}`, { id: toastId });
+    } finally {
+      setUploadingThumb(false);
+      e.target.value = '';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!lat || !lng) {
@@ -99,6 +156,8 @@ export function MapLocationManager({ initialLocations, households }: Props) {
       custom_name: formType === "custom" ? customName : null,
       custom_description: formType === "custom" ? customDesc : null,
       gallery_urls: gallery_urls, 
+      category: category,
+      thumbnail_url: thumbnailUrl || null,
     };
 
     let res;
@@ -136,6 +195,8 @@ export function MapLocationManager({ initialLocations, households }: Props) {
     setCustomName(loc.custom_name || "");
     setCustomDesc(loc.custom_description || "");
     setGalleryUrlsText(loc.gallery_urls?.join(", ") || "");
+    setCategory(loc.category || "dia_diem");
+    setThumbnailUrl(loc.thumbnail_url || "");
     setShowForm(true);
     // Cuộn lên đầu
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -194,6 +255,38 @@ export function MapLocationManager({ initialLocations, households }: Props) {
             </label>
           </div>
 
+          {/* Category Selector - available for both types */}
+          <div>
+            <label className="block text-sm font-medium mb-2">Loại địa điểm</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {CATEGORY_OPTIONS.map(opt => {
+                const Icon = opt.icon;
+                const isSelected = category === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setCategory(opt.value)}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-2 text-sm font-medium transition-all text-left ${
+                      isSelected 
+                        ? "border-current shadow-md ring-1 ring-current/20" 
+                        : "border-gray-200 hover:border-gray-300 bg-white"
+                    }`}
+                    style={isSelected ? { color: opt.color, borderColor: opt.color, backgroundColor: `${opt.color}08` } : {}}
+                  >
+                    <div 
+                      className="p-1.5 rounded-full shrink-0"
+                      style={{ backgroundColor: isSelected ? `${opt.color}20` : "#f3f4f6" }}
+                    >
+                      <Icon className="w-4 h-4" style={{ color: isSelected ? opt.color : "#9ca3af" }} />
+                    </div>
+                    <span className={isSelected ? "" : "text-gray-600"}>{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Vĩ độ (Latitude)</label>
@@ -237,6 +330,36 @@ export function MapLocationManager({ initialLocations, households }: Props) {
             </div>
           )}
 
+          {/* Thumbnail upload */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Ảnh đại diện (thumbnail trên bản đồ)</label>
+            <div className="flex items-center gap-3">
+              {thumbnailUrl ? (
+                <div className="relative group">
+                  <img src={thumbnailUrl} alt="Thumbnail" className="w-16 h-16 rounded-lg object-cover border-2 border-gray-200 shadow-sm" />
+                  <button 
+                    type="button" 
+                    onClick={() => setThumbnailUrl("")}
+                    className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  >
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                  <ImageIcon className="w-6 h-6 text-gray-400" />
+                </div>
+              )}
+              <div className="flex flex-col gap-1.5">
+                <label className="cursor-pointer inline-flex items-center gap-1.5 text-[var(--pl-clay)] hover:underline text-sm bg-white px-3 py-1.5 border rounded-md shadow-sm font-medium">
+                  <Upload className="w-3.5 h-3.5" /> {thumbnailUrl ? "Đổi ảnh" : "Tải ảnh lên"}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleThumbnailUpload} disabled={uploadingThumb} />
+                </label>
+                <p className="text-xs text-muted-foreground">Ảnh nhỏ hiển thị trên marker bản đồ</p>
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end pt-2 gap-3">
             <button type="button" onClick={() => {setShowForm(false); resetForm();}} className="px-6 py-2 border bg-white rounded font-medium hover:bg-gray-50 text-sm">
               Huỷ
@@ -251,35 +374,49 @@ export function MapLocationManager({ initialLocations, households }: Props) {
       <div className="border rounded-lg divide-y bg-white">
         {locations.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">Chưa có điểm nào trên bản đồ.</div>
-        ) : locations.map((loc) => (
-          <div key={loc.id} className="flex items-center justify-between p-4 hover:bg-secondary/20 transition-colors group cursor-pointer" onClick={() => handleEdit(loc)}>
-            <div className="flex items-start gap-4">
-              <div className="mt-1 p-2 bg-secondary rounded-full group-hover:bg-[var(--pl-clay)]/20 transition-colors">
-                <MapPin className="w-5 h-5 text-muted-foreground group-hover:text-[var(--pl-clay)] transition-colors" />
-              </div>
-              <div>
-                <h4 className="font-semibold group-hover:text-[var(--pl-clay)] transition-colors">
-                  {loc.type === "household" ? loc.households?.name || "Hộ nghề (Lỗi data)" : loc.custom_name}
-                </h4>
-                <div className="text-sm text-muted-foreground flex gap-3 mt-1">
-                  <span className="capitalize border px-1.5 rounded text-xs bg-gray-50">{loc.type}</span>
-                  <span>{loc.lat}, {loc.lng}</span>
-                  {loc.gallery_urls?.length > 0 && (
-                    <span className="text-blue-500 font-medium">({loc.gallery_urls.length} ảnh)</span>
-                  )}
+        ) : locations.map((loc) => {
+          const catOpt = getCategoryOption(loc.category);
+          const CatIcon = catOpt.icon;
+          return (
+            <div key={loc.id} className="flex items-center justify-between p-4 hover:bg-secondary/20 transition-colors group cursor-pointer" onClick={() => handleEdit(loc)}>
+              <div className="flex items-start gap-4">
+                {loc.thumbnail_url ? (
+                  <img src={loc.thumbnail_url} alt="" className="w-10 h-10 rounded-lg object-cover mt-0.5 shadow-sm border" />
+                ) : (
+                  <div className="mt-0.5 p-2 rounded-full transition-colors" style={{ backgroundColor: `${catOpt.color}15` }}>
+                    <CatIcon className="w-5 h-5 transition-colors" style={{ color: catOpt.color }} />
+                  </div>
+                )}
+                <div>
+                  <h4 className="font-semibold group-hover:text-[var(--pl-clay)] transition-colors">
+                    {loc.type === "household" ? loc.households?.name || "Hộ nghề (Lỗi data)" : loc.custom_name}
+                  </h4>
+                  <div className="text-sm text-muted-foreground flex flex-wrap gap-2 mt-1 items-center">
+                    <span 
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                      style={{ backgroundColor: `${catOpt.color}15`, color: catOpt.color }}
+                    >
+                      <CatIcon className="w-3 h-3" />
+                      {catOpt.label}
+                    </span>
+                    <span className="text-xs">{loc.lat}, {loc.lng}</span>
+                    {loc.gallery_urls?.length > 0 && (
+                      <span className="text-blue-500 font-medium text-xs">({loc.gallery_urls.length} ảnh)</span>
+                    )}
+                  </div>
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+                <button onClick={(e) => { e.stopPropagation(); handleEdit(loc); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-md transition-colors" title="Chỉnh sửa">
+                  <Pencil className="w-5 h-5" />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); handleDelete(loc.id); }} disabled={loading} className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Xoá">
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={(e) => { e.stopPropagation(); handleEdit(loc); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-md transition-colors" title="Chỉnh sửa">
-                <Pencil className="w-5 h-5" />
-              </button>
-              <button onClick={(e) => { e.stopPropagation(); handleDelete(loc.id); }} disabled={loading} className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Xoá">
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

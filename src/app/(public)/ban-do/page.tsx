@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function MapPage() {
   const supabase = createClient();
   
-  // Simple query without nested joins that could fail
+  // Query with category and thumbnail for enhanced markers
   const { data: locations, error } = await supabase
     .from("map_locations")
     .select(`

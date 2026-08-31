@@ -4,8 +4,38 @@ import React, { useState, useRef, useMemo, useCallback } from "react";
 import Map, { Marker, Popup, NavigationControl, FullscreenControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./map.css";
-import { MapPin, X, Search } from "lucide-react";
+import { MapPin, X, Search, UtensilsCrossed, Flame, Landmark, Camera } from "lucide-react";
 import Link from "next/link";
+
+// ===== Category config =====
+type CategoryKey = "nha_hang" | "lo_gom" | "di_tich" | "check_in" | "dia_diem";
+
+const CATEGORY_CONFIG: Record<CategoryKey, { label: string; icon: React.ElementType; color: string; cssClass: string }> = {
+  nha_hang: { label: "Nhà hàng", icon: UtensilsCrossed, color: "#22c55e", cssClass: "marker-nha-hang" },
+  lo_gom:   { label: "Lò gốm",   icon: Flame,            color: "#f97316", cssClass: "marker-lo-gom" },
+  di_tich:  { label: "Di tích",   icon: Landmark,         color: "#8b5cf6", cssClass: "marker-di-tich" },
+  check_in: { label: "Điểm check-in", icon: Camera,       color: "#ec4899", cssClass: "marker-check-in" },
+  dia_diem: { label: "Địa điểm",  icon: MapPin,           color: "var(--pl-clay, #c2714f)", cssClass: "marker-dia-diem" },
+};
+
+const ALL_CATEGORIES: CategoryKey[] = ["lo_gom", "nha_hang", "di_tich", "check_in", "dia_diem"];
+
+function getCategoryConfig(category: string | null | undefined) {
+  return CATEGORY_CONFIG[(category as CategoryKey)] || CATEGORY_CONFIG.dia_diem;
+}
+
+// Get thumbnail for a location
+function getThumbnail(loc: any): string | null {
+  if (loc.thumbnail_url) return loc.thumbnail_url;
+  if (loc.type === "household" && loc.households?.cover_image) return loc.households.cover_image;
+  if (loc.gallery_urls?.length > 0) return loc.gallery_urls[0];
+  return null;
+}
+
+// Get display name for a location
+function getDisplayName(loc: any): string {
+  return loc.type === "household" ? (loc.households?.name || "Không tên") : (loc.custom_name || "Không tên");
+}
 
 type Props = {
   locations: any[];
@@ -17,6 +47,7 @@ export function InteractiveMap({ locations }: Props) {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [geocodeResults, setGeocodeResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<Set<CategoryKey | "all">>(new Set(["all"]));
   const mapRef = useRef<any>(null);
   const searchTimeout = useRef<any>(null);
 
@@ -31,12 +62,39 @@ export function InteractiveMap({ locations }: Props) {
     bearing: 0,
   };
 
+  // Toggle filter
+  const toggleFilter = (category: CategoryKey | "all") => {
+    setActiveFilters(prev => {
+      const next = new Set(prev);
+      if (category === "all") {
+        return new Set(["all"]);
+      }
+      next.delete("all");
+      if (next.has(category)) {
+        next.delete(category);
+        if (next.size === 0) return new Set(["all"]);
+      } else {
+        next.add(category);
+      }
+      return next;
+    });
+  };
+
+  // Filtered locations
+  const filteredLocations = useMemo(() => {
+    if (activeFilters.has("all")) return locations;
+    return locations.filter(loc => {
+      const cat = (loc.category || "dia_diem") as CategoryKey;
+      return activeFilters.has(cat);
+    });
+  }, [locations, activeFilters]);
+
   // Filter existing markers by name
   const markerResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
     return locations.filter(loc => {
-      const name = loc.type === "household" ? loc.households?.name : loc.custom_name;
+      const name = getDisplayName(loc);
       return name?.toLowerCase().includes(q);
     });
   }, [searchQuery, locations]);
@@ -167,23 +225,30 @@ export function InteractiveMap({ locations }: Props) {
               {markerResults.length > 0 && (
                 <>
                   <div className="px-4 py-2 text-xs font-semibold text-muted-foreground bg-gray-50 uppercase tracking-wide">Điểm đã ghim</div>
-                  {markerResults.map(loc => (
-                    <button 
-                      key={loc.id}
-                      onClick={() => handleSearchResultClick(loc)}
-                      className="w-full text-left px-4 py-3 hover:bg-[var(--pl-clay)]/5 transition-colors flex items-center gap-3 border-b border-[var(--pl-ash)]/10"
-                    >
-                      <div className="bg-[var(--pl-clay)]/10 p-2 rounded-full shrink-0">
-                        <MapPin className="w-4 h-4 text-[var(--pl-clay)]" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-medium text-sm text-[var(--pl-char)] truncate">
-                          {loc.type === "household" ? loc.households?.name : loc.custom_name}
+                  {markerResults.map(loc => {
+                    const cat = getCategoryConfig(loc.category);
+                    const CatIcon = cat.icon;
+                    return (
+                      <button 
+                        key={loc.id}
+                        onClick={() => handleSearchResultClick(loc)}
+                        className="w-full text-left px-4 py-3 hover:bg-[var(--pl-clay)]/5 transition-colors flex items-center gap-3 border-b border-[var(--pl-ash)]/10"
+                      >
+                        <div className="p-2 rounded-full shrink-0" style={{ backgroundColor: `${cat.color}20` }}>
+                          <CatIcon className="w-4 h-4" style={{ color: cat.color }} />
                         </div>
-                        <div className="text-xs text-muted-foreground">{loc.type === 'household' ? 'Hộ nghề' : 'Địa điểm'}</div>
-                      </div>
-                    </button>
-                  ))}
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-sm text-[var(--pl-char)] truncate">
+                            {getDisplayName(loc)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{cat.label}</div>
+                        </div>
+                        {getThumbnail(loc) && (
+                          <img src={getThumbnail(loc)!} alt="" className="w-8 h-8 rounded-md object-cover shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </>
               )}
 
@@ -222,19 +287,48 @@ export function InteractiveMap({ locations }: Props) {
           )}
         </div>
 
+        {/* Filter pills */}
+        {!searchQuery && (
+          <div className="map-filter-bar mt-3">
+            <button
+              onClick={() => toggleFilter("all")}
+              className={`map-filter-pill pill-all ${activeFilters.has("all") ? "active" : ""}`}
+            >
+              Tất cả
+            </button>
+            {ALL_CATEGORIES.map(cat => {
+              const config = CATEGORY_CONFIG[cat];
+              const Icon = config.icon;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => toggleFilter(cat)}
+                  className={`map-filter-pill pill-${cat.replace("_", "-")} ${activeFilters.has(cat) ? "active" : ""}`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {config.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Location List Panel */}
-        {locations.length > 0 && !searchQuery && (
-          <div className="mt-3 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-[var(--pl-ash)]/30 overflow-hidden max-h-[calc(100vh-220px)]">
+        {filteredLocations.length > 0 && !searchQuery && (
+          <div className="mt-3 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-[var(--pl-ash)]/30 overflow-hidden max-h-[calc(100vh-280px)]">
             <div className="px-4 py-3 bg-[var(--pl-clay)]/10 border-b border-[var(--pl-ash)]/20 flex items-center justify-between">
               <span className="text-sm font-semibold text-[var(--pl-char)] flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-[var(--pl-clay)]" />
-                Điểm tham quan ({locations.length})
+                Điểm tham quan ({filteredLocations.length})
               </span>
             </div>
-            <div className="overflow-y-auto max-h-[calc(100vh-280px)] divide-y divide-[var(--pl-ash)]/10">
-              {locations.map(loc => {
-                const name = loc.type === "household" ? loc.households?.name : loc.custom_name;
+            <div className="overflow-y-auto max-h-[calc(100vh-340px)] divide-y divide-[var(--pl-ash)]/10">
+              {filteredLocations.map(loc => {
+                const name = getDisplayName(loc);
                 const isActive = popupInfo?.id === loc.id;
+                const cat = getCategoryConfig(loc.category);
+                const CatIcon = cat.icon;
+                const thumb = getThumbnail(loc);
                 return (
                   <button
                     key={loc.id}
@@ -245,15 +339,20 @@ export function InteractiveMap({ locations }: Props) {
                         : "hover:bg-[var(--pl-clay)]/5 border-l-4 border-transparent"
                     }`}
                   >
-                    <div className={`p-1.5 rounded-full shrink-0 ${isActive ? "bg-[var(--pl-clay)]" : "bg-[var(--pl-clay)]/15"}`}>
-                      <MapPin className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-[var(--pl-clay)]"}`} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className={`text-sm truncate ${isActive ? "font-bold text-[var(--pl-clay)]" : "font-medium text-[var(--pl-char)]"}`}>
-                        {name || "Không tên"}
+                    {thumb ? (
+                      <img src={thumb} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm" />
+                    ) : (
+                      <div className={`p-2 rounded-lg shrink-0 ${isActive ? "bg-[var(--pl-clay)]" : ""}`} style={!isActive ? { backgroundColor: `${cat.color}15` } : {}}>
+                        <CatIcon className="w-5 h-5" style={{ color: isActive ? "white" : cat.color }} />
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {loc.type === "household" ? "Hộ nghề" : "Địa điểm"}
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className={`text-sm truncate ${isActive ? "font-bold text-[var(--pl-clay)]" : "font-medium text-[var(--pl-char)]"}`}>
+                        {name}
+                      </div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }}></span>
+                        {cat.label}
                       </div>
                     </div>
                   </button>
@@ -266,7 +365,7 @@ export function InteractiveMap({ locations }: Props) {
 
       {/* Location count badge */}
       <div className="absolute bottom-4 left-4 z-10 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm">
-        {locations.length} điểm trên bản đồ
+        {filteredLocations.length} điểm trên bản đồ
       </div>
 
       <Map
@@ -283,28 +382,43 @@ export function InteractiveMap({ locations }: Props) {
         <NavigationControl position="top-right" />
         <FullscreenControl position="top-right" />
 
-        {locations.map((loc) => (
-          <Marker 
-            key={loc.id} 
-            longitude={Number(loc.lng)} 
-            latitude={Number(loc.lat)} 
-            anchor="bottom"
-            onClick={(e) => handleMarkerClick(e, loc)}
-          >
-            <div className="relative group cursor-pointer z-0 hover:z-50">
-              {/* Pulse effect */}
-              <div className="map-marker-pulse"></div>
-              
-              <div className="w-10 h-10 bg-[var(--pl-clay)] rounded-full flex items-center justify-center shadow-lg border-2 border-white transform transition-transform group-hover:scale-110 relative z-10">
-                <MapPin className="w-6 h-6 text-white" />
+        {filteredLocations.map((loc) => {
+          const cat = getCategoryConfig(loc.category);
+          const CatIcon = cat.icon;
+          const name = getDisplayName(loc);
+          const thumb = getThumbnail(loc);
+
+          return (
+            <Marker 
+              key={loc.id} 
+              longitude={Number(loc.lng)} 
+              latitude={Number(loc.lat)} 
+              anchor="bottom"
+              onClick={(e) => handleMarkerClick(e, loc)}
+            >
+              <div className={`map-marker-card ${cat.cssClass}`}>
+                {/* Pulse effect */}
+                <div className="map-marker-pulse"></div>
+                
+                {/* Info strip: thumbnail + name */}
+                <div className="map-marker-info">
+                  {thumb && (
+                    <img src={thumb} alt="" className="map-marker-thumb" />
+                  )}
+                  <span className="map-marker-name">{name}</span>
+                </div>
+
+                {/* Category icon pin */}
+                <div className="map-marker-icon">
+                  <CatIcon className="w-5 h-5 text-white" />
+                </div>
+
+                {/* Pin tail */}
+                <div className="map-marker-tail"></div>
               </div>
-              
-              <div className="absolute top-12 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-md text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl font-medium z-20">
-                {loc.type === "household" ? loc.households?.name : loc.custom_name}
-              </div>
-            </div>
-          </Marker>
-        ))}
+            </Marker>
+          );
+        })}
 
         {popupInfo && (
           <Popup
@@ -345,12 +459,33 @@ export function InteractiveMap({ locations }: Props) {
             {/* Info Box */}
             <div className="p-3 w-64 bg-white rounded-lg shadow-xl relative z-10 mt-10">
               <div className="flex justify-between items-start mb-3">
-                <h3 className="font-bold text-base text-[var(--pl-char)] pr-4">
-                  {popupInfo.type === "household" ? popupInfo.households?.name : popupInfo.custom_name}
-                </h3>
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const cat = getCategoryConfig(popupInfo.category);
+                    const CatIcon = cat.icon;
+                    return (
+                      <div className="p-1.5 rounded-full" style={{ backgroundColor: `${cat.color}20` }}>
+                        <CatIcon className="w-4 h-4" style={{ color: cat.color }} />
+                      </div>
+                    );
+                  })()}
+                  <h3 className="font-bold text-base text-[var(--pl-char)] pr-4">
+                    {getDisplayName(popupInfo)}
+                  </h3>
+                </div>
                 <button onClick={() => setPopupInfo(null)} className="p-1 hover:bg-secondary rounded-full shrink-0 transition-colors">
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
+              </div>
+
+              <div className="mb-2">
+                <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium" 
+                  style={{ 
+                    backgroundColor: `${getCategoryConfig(popupInfo.category).color}15`,
+                    color: getCategoryConfig(popupInfo.category).color 
+                  }}>
+                  {getCategoryConfig(popupInfo.category).label}
+                </span>
               </div>
               
               <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
