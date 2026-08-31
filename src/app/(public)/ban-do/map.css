@@ -1,5 +1,38 @@
 /* ===== PERFORMANCE-OPTIMIZED MAP STYLES ===== */
 
+/* ===== 2D/3D Toggle Button ===== */
+.map-3d-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #555;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.map-3d-toggle:hover {
+  background: white;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+
+.map-3d-toggle.active {
+  background: linear-gradient(135deg, #c2714f, #a85d3f);
+  color: white;
+  box-shadow: 0 3px 12px rgba(194, 113, 79, 0.4);
+}
+
+.map-3d-toggle.active:hover {
+  box-shadow: 0 4px 16px rgba(194, 113, 79, 0.5);
+}
+
 /* Pulse Effect - GPU accelerated, only on hover */
 .map-marker-pulse {
   position: absolute;

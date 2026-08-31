@@ -4,7 +4,7 @@ import React, { useState, useRef, useMemo, useCallback, useEffect } from "react"
 import Map, { Marker, NavigationControl, FullscreenControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./map.css";
-import { MapPin, X, Search, UtensilsCrossed, Flame, Landmark, Camera, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, X, Search, UtensilsCrossed, Flame, Landmark, Camera, ChevronLeft, ChevronRight, Layers, Map as MapIcon } from "lucide-react";
 import Link from "next/link";
 
 // ===== Category config =====
@@ -223,6 +223,7 @@ export function InteractiveMap({ locations }: Props) {
   const [geocodeResults, setGeocodeResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Set<CategoryKey | "all">>(new Set(["all"]));
+  const [is3D, setIs3D] = useState(false);
   const mapRef = useRef<any>(null);
   const searchTimeout = useRef<any>(null);
 
@@ -233,9 +234,77 @@ export function InteractiveMap({ locations }: Props) {
     longitude: 106.2568,
     latitude: 21.1490,
     zoom: 14.5,
-    pitch: 45,
+    pitch: 0,
     bearing: 0,
   };
+
+  // Toggle 3D mode
+  const toggle3D = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const next3D = !is3D;
+    setIs3D(next3D);
+
+    if (next3D) {
+      // Enable 3D terrain
+      if (!map.getSource("mapbox-dem")) {
+        map.addSource("mapbox-dem", {
+          type: "raster-dem",
+          url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+          tileSize: 512,
+          maxzoom: 14,
+        });
+      }
+      map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+
+      // Add sky layer
+      if (!map.getLayer("sky")) {
+        map.addLayer({
+          id: "sky",
+          type: "sky",
+          paint: {
+            "sky-type": "atmosphere",
+            "sky-atmosphere-sun": [0.0, 0.0],
+            "sky-atmosphere-sun-intensity": 15,
+          },
+        });
+      }
+
+      // Add 3D buildings
+      if (!map.getLayer("3d-buildings")) {
+        const layers = map.getStyle().layers;
+        const labelLayer = layers?.find((l: any) => l.type === "symbol" && l.layout?.["text-field"]);
+        map.addLayer(
+          {
+            id: "3d-buildings",
+            source: "composite",
+            "source-layer": "building",
+            filter: ["==", "extrude", "true"],
+            type: "fill-extrusion",
+            minzoom: 13,
+            paint: {
+              "fill-extrusion-color": "#d4a373",
+              "fill-extrusion-height": ["get", "height"],
+              "fill-extrusion-base": ["get", "min_height"],
+              "fill-extrusion-opacity": 0.6,
+            },
+          },
+          labelLayer?.id
+        );
+      }
+
+      // Animate to 3D view
+      map.easeTo({ pitch: 60, bearing: -20, duration: 1000 });
+    } else {
+      // Disable 3D
+      map.setTerrain(null);
+      if (map.getLayer("sky")) map.removeLayer("sky");
+      if (map.getLayer("3d-buildings")) map.removeLayer("3d-buildings");
+
+      // Animate to 2D view
+      map.easeTo({ pitch: 0, bearing: 0, duration: 800 });
+    }
+  }, [is3D]);
 
   // Toggle filter
   const toggleFilter = (category: CategoryKey | "all") => {
@@ -537,8 +606,19 @@ export function InteractiveMap({ locations }: Props) {
       </div>
 
       {/* Location count badge */}
-      <div className="absolute bottom-4 left-4 z-10 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm">
-        {filteredLocations.length} điểm trên bản đồ
+      {/* Bottom controls */}
+      <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
+        <div className="bg-black/70 text-white text-xs px-3 py-1.5 rounded-full">
+          {filteredLocations.length} điểm trên bản đồ
+        </div>
+        <button
+          onClick={toggle3D}
+          className={`map-3d-toggle ${is3D ? "active" : ""}`}
+          title={is3D ? "Chuyển sang 2D" : "Chuyển sang 3D"}
+        >
+          {is3D ? <MapIcon className="w-4 h-4" /> : <Layers className="w-4 h-4" />}
+          <span>{is3D ? "2D" : "3D"}</span>
+        </button>
       </div>
 
       <Map
