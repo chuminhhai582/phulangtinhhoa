@@ -329,10 +329,9 @@ export function InteractiveMap({ locations }: Props) {
     if (mapRef.current) {
       mapRef.current.flyTo({
         center: [loc.lng, loc.lat],
-        zoom: 17,
-        pitch: 60,
-        bearing: 0,
-        duration: 1500
+        zoom: 16,
+        duration: 800,
+        essential: true,
       });
     }
   };
@@ -540,50 +539,6 @@ export function InteractiveMap({ locations }: Props) {
       {/* Location count badge */}
       <div className="absolute bottom-4 left-4 z-10 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm">
         {filteredLocations.length} điểm trên bản đồ
-      </div>
-
-      {/* Vietnam Sovereignty Inset Map - Hoàng Sa & Trường Sa */}
-      <div className="vietnam-inset-map">
-        <svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-          {/* Background */}
-          <rect width="120" height="200" rx="8" fill="rgba(255,255,255,0.92)" stroke="rgba(0,0,0,0.15)" strokeWidth="1"/>
-          
-          {/* Title */}
-          <text x="60" y="14" textAnchor="middle" fontSize="7" fontWeight="700" fill="#1a1a2e">VIỆT NAM</text>
-          
-          {/* Simplified Vietnam mainland outline */}
-          <path d="M58,22 L62,20 L65,22 L68,21 L72,24 L74,28 L72,32 L70,36 L68,34 L66,36 L64,40 L62,44 L60,48 L58,52 L56,56 L54,60 L52,64 L50,68 L48,72 L46,76 L44,80 L42,84 L40,88 L38,92 L36,96 L34,100 L33,104 L34,108 L36,112 L38,116 L40,118 L42,120 L44,124 L46,128 L48,132 L50,134 L52,136 L54,140 L52,142 L48,140 L46,138 L44,136 L42,138 L44,142 L46,146 L48,150 L50,152 L52,154 L54,156 L56,160 L58,164 L60,166 L58,168 L54,166 L52,164 L50,166 L52,170 L56,174 L60,176 L62,174 L60,170 L62,168 L64,166 L62,162 L60,158 L58,154 L56,150 L54,146 L56,144 L58,142 L60,140 L62,136 L60,132 L58,128 L56,124 L58,120 L60,116 L62,112 L64,108 L66,104 L68,100 L66,96 L64,92 L62,88 L60,84 L58,80 L56,76 L58,72 L60,68 L62,64 L64,60 L66,56 L68,52 L70,48 L72,44 L70,40 L68,38 L66,42 L64,46 L62,50 L60,54 L58,50 L56,46 L54,42 L56,38 L58,34 L60,30 L58,26 Z" 
-                fill="#d4a373" stroke="#8b6914" strokeWidth="0.8" opacity="0.7"/>
-          
-          {/* Hoàng Sa - Paracel Islands */}
-          <g>
-            <circle cx="82" cy="62" r="1.5" fill="#e63946"/>
-            <circle cx="85" cy="60" r="1.2" fill="#e63946"/>
-            <circle cx="84" cy="64" r="1" fill="#e63946"/>
-            {/* Dashed border circle */}
-            <circle cx="83" cy="62" r="8" fill="none" stroke="#e63946" strokeWidth="0.6" strokeDasharray="2,1.5"/>
-            <text x="83" y="75" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="#e63946">Hoàng Sa</text>
-          </g>
-          
-          {/* Trường Sa - Spratly Islands */}
-          <g>
-            <circle cx="78" cy="130" r="1.2" fill="#e63946"/>
-            <circle cx="82" cy="128" r="1" fill="#e63946"/>
-            <circle cx="80" cy="132" r="1" fill="#e63946"/>
-            <circle cx="76" cy="134" r="0.8" fill="#e63946"/>
-            <circle cx="84" cy="134" r="0.8" fill="#e63946"/>
-            {/* Dashed border circle */}
-            <circle cx="80" cy="131" r="10" fill="none" stroke="#e63946" strokeWidth="0.6" strokeDasharray="2,1.5"/>
-            <text x="80" y="146" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="#e63946">Trường Sa</text>
-          </g>
-
-          {/* Red star for Hanoi */}
-          <text x="56" y="38" fontSize="6" fill="#e63946">★</text>
-          
-          {/* Vietnam flag colors - bottom bar */}
-          <rect x="4" y="188" width="112" height="8" rx="4" fill="#da251d"/>
-          <text x="60" y="195" textAnchor="middle" fontSize="5" fontWeight="600" fill="#ffcd00">★ Chủ quyền Việt Nam</text>
-        </svg>
       </div>
 
       <Map
