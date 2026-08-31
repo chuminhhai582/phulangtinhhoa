@@ -205,20 +205,31 @@
 .map-filter-scroll-wrapper {
   padding: 8px 12px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .map-filter-bar-scroll {
-  flex-wrap: nowrap !important;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  flex-wrap: wrap;
   padding-bottom: 2px;
 }
 
-.map-filter-bar-scroll::-webkit-scrollbar {
-  display: none;
+/* Only horizontal scroll on mobile */
+@media (max-width: 768px) {
+  .map-filter-scroll-wrapper {
+    overflow: hidden;
+  }
+
+  .map-filter-bar-scroll {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .map-filter-bar-scroll::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* ===== Location List ===== */
