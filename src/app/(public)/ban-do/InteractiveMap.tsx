@@ -447,40 +447,39 @@ export function InteractiveMap({ locations }: Props) {
           )}
         </div>
 
-        {/* Filter pills */}
-        {!searchQuery && (
-          <div className="map-filter-bar mt-3">
-            <button
-              onClick={() => toggleFilter("all")}
-              className={`map-filter-pill pill-all ${activeFilters.has("all") ? "active" : ""}`}
-            >
-              Tất cả
-            </button>
-            {ALL_CATEGORIES.map(cat => {
-              const config = CATEGORY_CONFIG[cat];
-              const Icon = config.icon;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => toggleFilter(cat)}
-                  className={`map-filter-pill pill-${cat.replace("_", "-")} ${activeFilters.has(cat) ? "active" : ""}`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  {config.label}
-                </button>
-              );
-            })}
-          </div>
-        )}
 
         {/* Location List Panel */}
-        {filteredLocations.length > 0 && !searchQuery && (
+        {!searchQuery && (
           <div className="mt-3 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-[var(--pl-ash)]/30 overflow-hidden max-h-[calc(100vh-280px)]">
-            <div className="px-4 py-3 bg-[var(--pl-clay)]/10 border-b border-[var(--pl-ash)]/20 flex items-center justify-between">
-              <span className="text-sm font-semibold text-[var(--pl-char)] flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[var(--pl-clay)]" />
-                Điểm tham quan ({filteredLocations.length})
-              </span>
+            <div className="px-4 py-3 bg-[var(--pl-clay)]/10 border-b border-[var(--pl-ash)]/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-[var(--pl-char)] flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[var(--pl-clay)]" />
+                  Điểm tham quan ({filteredLocations.length})
+                </span>
+              </div>
+              <div className="map-filter-bar">
+                <button
+                  onClick={() => toggleFilter("all")}
+                  className={`map-filter-pill pill-all ${activeFilters.has("all") ? "active" : ""}`}
+                >
+                  Tất cả
+                </button>
+                {ALL_CATEGORIES.map(cat => {
+                  const config = CATEGORY_CONFIG[cat];
+                  const Icon = config.icon;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => toggleFilter(cat)}
+                      className={`map-filter-pill pill-${cat.replace("_", "-")} ${activeFilters.has(cat) ? "active" : ""}`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      {config.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="overflow-y-auto max-h-[calc(100vh-340px)] divide-y divide-[var(--pl-ash)]/10">
               {filteredLocations.map(loc => {
