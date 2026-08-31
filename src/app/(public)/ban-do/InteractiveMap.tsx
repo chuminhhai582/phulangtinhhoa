@@ -264,15 +264,28 @@ export function InteractiveMap({ locations }: Props) {
     });
   }, [locations, activeFilters]);
 
-  // Filter existing markers by name
+  // Remove Vietnamese diacritics for fuzzy search
+  const removeDiacritics = useCallback((str: string) => {
+    return str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .replace(/Đ/g, "D")
+      .toLowerCase();
+  }, []);
+
+  // Filter existing markers by name (diacritics-insensitive)
   const markerResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase();
+    const q = removeDiacritics(searchQuery);
     return locations.filter(loc => {
       const name = getDisplayName(loc);
-      return name?.toLowerCase().includes(q);
+      if (!name) return false;
+      // Match both with and without diacritics
+      return name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+             removeDiacritics(name).includes(q);
     });
-  }, [searchQuery, locations]);
+  }, [searchQuery, locations, removeDiacritics]);
 
   // Geocode search using Mapbox API
   const handleSearchInput = useCallback((value: string) => {
@@ -291,8 +304,10 @@ export function InteractiveMap({ locations }: Props) {
     searchTimeout.current = setTimeout(async () => {
       setSearching(true);
       try {
+        // bbox around Phù Lãng area for better local results
+        const bbox = "106.15,21.05,106.40,21.25";
         const res = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=vn&language=vi&limit=5&proximity=106.2568,21.1490`
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=vn&language=vi&limit=5&proximity=106.2568,21.1490&bbox=${bbox}&types=poi,address,place,neighborhood,locality`
         );
         const data = await res.json();
         setGeocodeResults(data.features || []);
