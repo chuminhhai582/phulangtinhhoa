@@ -222,7 +222,8 @@ export function InteractiveMap({ locations }: Props) {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [geocodeResults, setGeocodeResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<Set<CategoryKey | "all">>(new Set(["all"]));
+  const [activeFilters, setActiveFilters] = useState<Set<CategoryKey>>(new Set());
+  const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [is3D, setIs3D] = useState(false);
   const mapRef = useRef<any>(null);
   const searchTimeout = useRef<any>(null);
@@ -309,16 +310,11 @@ export function InteractiveMap({ locations }: Props) {
   }, [is3D]);
 
   // Toggle filter
-  const toggleFilter = (category: CategoryKey | "all") => {
+  const toggleFilter = (category: CategoryKey) => {
     setActiveFilters(prev => {
       const next = new Set(prev);
-      if (category === "all") {
-        return new Set(["all"]);
-      }
-      next.delete("all");
       if (next.has(category)) {
         next.delete(category);
-        if (next.size === 0) return new Set(["all"]);
       } else {
         next.add(category);
       }
@@ -328,7 +324,7 @@ export function InteractiveMap({ locations }: Props) {
 
   // Filtered locations
   const filteredLocations = useMemo(() => {
-    if (activeFilters.has("all")) return locations;
+    if (activeFilters.size === 0) return locations;
     return locations.filter(loc => {
       const cat = (loc.category || "dia_diem") as CategoryKey;
       return activeFilters.has(cat);
@@ -535,21 +531,21 @@ export function InteractiveMap({ locations }: Props) {
 
         {/* Location List Panel */}
         {!searchQuery && (
-          <div className="mt-3 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-[var(--pl-ash)]/30 overflow-hidden max-h-[calc(100vh-280px)]">
-            <div className="px-4 py-3 bg-[var(--pl-clay)]/10 border-b border-[var(--pl-ash)]/20">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-[var(--pl-char)] flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[var(--pl-clay)]" />
-                  Điểm tham quan ({filteredLocations.length})
-                </span>
-              </div>
-              <div className="map-filter-bar">
-                <button
-                  onClick={() => toggleFilter("all")}
-                  className={`map-filter-pill pill-all ${activeFilters.has("all") ? "active" : ""}`}
-                >
-                  Tất cả
-                </button>
+          <div className={`mt-3 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-[var(--pl-ash)]/30 overflow-hidden map-location-panel ${panelCollapsed ? "collapsed" : ""}`}>
+            <button
+              className="map-panel-header"
+              onClick={() => setPanelCollapsed(prev => !prev)}
+            >
+              <span className="text-sm font-semibold text-[var(--pl-char)] flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[var(--pl-clay)]" />
+                Điểm tham quan ({filteredLocations.length})
+              </span>
+              <span className={`map-panel-chevron ${panelCollapsed ? "" : "expanded"}`}>
+                <ChevronRight className="w-4 h-4" />
+              </span>
+            </button>
+            <div className="map-filter-scroll-wrapper">
+              <div className="map-filter-bar map-filter-bar-scroll">
                 {ALL_CATEGORIES.map(cat => {
                   const config = CATEGORY_CONFIG[cat];
                   const Icon = config.icon;
@@ -566,43 +562,45 @@ export function InteractiveMap({ locations }: Props) {
                 })}
               </div>
             </div>
-            <div className="overflow-y-auto max-h-[calc(100vh-340px)] divide-y divide-[var(--pl-ash)]/10">
-              {filteredLocations.map(loc => {
-                const name = getDisplayName(loc);
-                const isActive = popupInfo?.id === loc.id;
-                const cat = getCategoryConfig(loc.category);
-                const CatIcon = cat.icon;
-                const thumb = getThumbnail(loc);
-                return (
-                  <button
-                    key={loc.id}
-                    onClick={() => handleSearchResultClick(loc)}
-                    className={`w-full text-left px-4 py-3 transition-colors flex items-center gap-3 ${
-                      isActive 
-                        ? "bg-[var(--pl-clay)]/10 border-l-4 border-[var(--pl-clay)]" 
-                        : "hover:bg-[var(--pl-clay)]/5 border-l-4 border-transparent"
-                    }`}
-                  >
-                    {thumb ? (
-                      <img src={thumb} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0 shadow-sm" />
-                    ) : (
-                      <div className={`p-2 rounded-lg shrink-0 ${isActive ? "bg-[var(--pl-clay)]" : ""}`} style={!isActive ? { backgroundColor: `${cat.color}15` } : {}}>
-                        <CatIcon className="w-5 h-5" style={{ color: isActive ? "white" : cat.color }} />
+            {!panelCollapsed && (
+              <div className="overflow-y-auto map-location-list divide-y divide-[var(--pl-ash)]/10">
+                {filteredLocations.map(loc => {
+                  const name = getDisplayName(loc);
+                  const isActive = popupInfo?.id === loc.id;
+                  const cat = getCategoryConfig(loc.category);
+                  const CatIcon = cat.icon;
+                  const thumb = getThumbnail(loc);
+                  return (
+                    <button
+                      key={loc.id}
+                      onClick={() => handleSearchResultClick(loc)}
+                      className={`w-full text-left px-3 py-2.5 transition-colors flex items-center gap-2.5 ${
+                        isActive 
+                          ? "bg-[var(--pl-clay)]/10 border-l-3 border-[var(--pl-clay)]" 
+                          : "hover:bg-[var(--pl-clay)]/5 border-l-3 border-transparent"
+                      }`}
+                    >
+                      {thumb ? (
+                        <img src={thumb} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm" />
+                      ) : (
+                        <div className={`p-1.5 rounded-lg shrink-0 ${isActive ? "bg-[var(--pl-clay)]" : ""}`} style={!isActive ? { backgroundColor: `${cat.color}15` } : {}}>
+                          <CatIcon className="w-4 h-4" style={{ color: isActive ? "white" : cat.color }} />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className={`text-[13px] leading-tight truncate ${isActive ? "font-bold text-[var(--pl-clay)]" : "font-medium text-[var(--pl-char)]"}`}>
+                          {name}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                          <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cat.color }}></span>
+                          {cat.label}
+                        </div>
                       </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className={`text-sm truncate ${isActive ? "font-bold text-[var(--pl-clay)]" : "font-medium text-[var(--pl-char)]"}`}>
-                        {name}
-                      </div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }}></span>
-                        {cat.label}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>

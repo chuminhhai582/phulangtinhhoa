@@ -159,6 +159,73 @@
 .marker-dia-diem .map-marker-pulse { background-color: var(--pl-clay, #c2714f); }
 .marker-dia-diem .map-marker-info { border-bottom: 2px solid var(--pl-clay, #c2714f); }
 
+/* ===== Location Panel (collapsible) ===== */
+.map-location-panel {
+  max-height: auto;
+  transition: max-height 0.3s ease;
+}
+
+.map-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--pl-clay, #c2714f);
+  background: linear-gradient(135deg, rgba(194, 113, 79, 0.12), rgba(194, 113, 79, 0.06));
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.map-panel-header:hover {
+  background: linear-gradient(135deg, rgba(194, 113, 79, 0.18), rgba(194, 113, 79, 0.1));
+}
+
+.map-panel-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(194, 113, 79, 0.1);
+  color: var(--pl-clay, #c2714f);
+  transition: transform 0.25s ease;
+  transform: rotate(90deg);
+}
+
+.map-panel-chevron.expanded {
+  transform: rotate(-90deg);
+}
+
+/* ===== Filter scroll wrapper ===== */
+.map-filter-scroll-wrapper {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.map-filter-bar-scroll {
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2px;
+}
+
+.map-filter-bar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== Location List ===== */
+.map-location-list {
+  max-height: calc(100vh - 340px);
+}
+
 /* ===== Filter pills ===== */
 .map-filter-bar {
   display: flex;
@@ -169,8 +236,8 @@
 .map-filter-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
+  gap: 4px;
+  padding: 5px 10px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
@@ -181,6 +248,8 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   transition: border-color 0.15s, color 0.15s;
   user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .map-filter-pill.active {
@@ -194,7 +263,6 @@
 .map-filter-pill.active.pill-di-tich { border-color: #8b5cf6; color: #7c3aed; }
 .map-filter-pill.active.pill-check-in { border-color: #ec4899; color: #db2777; }
 .map-filter-pill.active.pill-dia-diem { border-color: var(--pl-clay, #c2714f); color: var(--pl-clay, #c2714f); }
-.map-filter-pill.active.pill-all { border-color: #374151; color: #1f2937; }
 
 /* ================================================================
    DETAIL OVERLAY - Optimized for 60fps
@@ -543,5 +611,29 @@
 
   .sovereignty-marker-label span {
     font-size: 8px;
+  }
+
+  /* Mobile panel optimizations */
+  .map-panel-header {
+    padding: 8px 12px;
+  }
+
+  .map-filter-scroll-wrapper {
+    padding: 6px 10px;
+  }
+
+  .map-filter-pill {
+    padding: 4px 8px;
+    font-size: 11px;
+    gap: 3px;
+    border-radius: 16px;
+  }
+
+  .map-location-list {
+    max-height: calc(100vh - 380px);
+  }
+
+  .map-location-panel.collapsed .map-filter-scroll-wrapper {
+    padding: 6px 10px;
   }
 }
