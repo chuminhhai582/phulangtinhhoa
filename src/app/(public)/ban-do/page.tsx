@@ -1,7 +1,8 @@
 import React from "react";
 import { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { InteractiveMap } from "./InteractiveMap";
+// import { InteractiveMap } from "./InteractiveMap"; // Mapbox version (tạm ẩn)
+import { GoogleMap3D } from "./GoogleMap3D"; // Google Maps 3D version
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,8 @@ export default async function MapPage() {
         </div>
       )}
       
-      <InteractiveMap locations={locations || []} />
+      {/* Google Maps 3D (đang test) — đổi lại <InteractiveMap> để dùng Mapbox */}
+      <GoogleMap3D locations={locations || []} />
     </div>
   );
 }
