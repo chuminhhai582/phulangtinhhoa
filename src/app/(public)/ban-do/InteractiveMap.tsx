@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useMemo, useCallback } from "react";
-import Map, { Marker, Popup, NavigationControl, FullscreenControl } from "react-map-gl/mapbox";
+import React, { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import Map, { Marker, NavigationControl, FullscreenControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "./map.css";
-import { MapPin, X, Search, UtensilsCrossed, Flame, Landmark, Camera } from "lucide-react";
+import { MapPin, X, Search, UtensilsCrossed, Flame, Landmark, Camera, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 // ===== Category config =====
@@ -37,9 +37,184 @@ function getDisplayName(loc: any): string {
   return loc.type === "household" ? (loc.households?.name || "Không tên") : (loc.custom_name || "Không tên");
 }
 
+// Get description for a location
+function getDescription(loc: any): string {
+  return loc.type === "household" ? (loc.households?.bio_vi || "") : (loc.custom_description || "");
+}
+
 type Props = {
   locations: any[];
 };
+
+// ===== 3D Carousel Component =====
+function Carousel3D({ images, activeIndex, onChangeIndex }: { images: string[]; activeIndex: number; onChangeIndex: (i: number) => void }) {
+  if (images.length === 0) return null;
+
+  const total = images.length;
+
+  return (
+    <div className="detail-carousel-wrapper">
+      <div className="detail-carousel-stage">
+        {images.map((url, i) => {
+          let offset = i - activeIndex;
+          // Wrap around for continuous feel
+          if (offset > Math.floor(total / 2)) offset -= total;
+          if (offset < -Math.floor(total / 2)) offset += total;
+
+          const isActive = offset === 0;
+          const absOffset = Math.abs(offset);
+          const zIndex = 20 - absOffset;
+          const translateX = offset * 280;
+          const translateZ = isActive ? 0 : -150 * absOffset;
+          const rotateY = offset * -25;
+          const scale = isActive ? 1 : Math.max(0.6, 1 - absOffset * 0.15);
+          const opacity = absOffset > 2 ? 0 : isActive ? 1 : 0.6;
+
+          return (
+            <div
+              key={i}
+              className={`detail-carousel-card ${isActive ? "active" : ""}`}
+              style={{
+                zIndex,
+                transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
+                opacity,
+                pointerEvents: isActive ? "auto" : "none",
+              }}
+              onClick={() => !isActive && onChangeIndex(i)}
+            >
+              <img src={url} alt={`Ảnh ${i + 1}`} />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Nav arrows */}
+      {total > 1 && (
+        <>
+          <button
+            className="detail-carousel-nav detail-carousel-prev"
+            onClick={() => onChangeIndex((activeIndex - 1 + total) % total)}
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <button
+            className="detail-carousel-nav detail-carousel-next"
+            onClick={() => onChangeIndex((activeIndex + 1) % total)}
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </>
+      )}
+
+      {/* Dots */}
+      {total > 1 && (
+        <div className="detail-carousel-dots">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              className={`detail-carousel-dot ${i === activeIndex ? "active" : ""}`}
+              onClick={() => onChangeIndex(i)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ===== Detail Overlay Component =====
+function LocationDetailOverlay({ loc, onClose }: { loc: any; onClose: () => void }) {
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const cat = getCategoryConfig(loc.category);
+  const CatIcon = cat.icon;
+  const name = getDisplayName(loc);
+  const description = getDescription(loc);
+  const images = getGalleryImagesStatic(loc);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft" && images.length > 1) {
+        setActiveImageIndex(prev => (prev - 1 + images.length) % images.length);
+      }
+      if (e.key === "ArrowRight" && images.length > 1) {
+        setActiveImageIndex(prev => (prev + 1) % images.length);
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [images.length, onClose]);
+
+  return (
+    <div className="detail-overlay" onClick={onClose}>
+      <div className="detail-overlay-content" onClick={(e) => e.stopPropagation()}>
+        {/* Close button */}
+        <button className="detail-close-btn" onClick={onClose}>
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Carousel section */}
+        {images.length > 0 && (
+          <Carousel3D
+            images={images}
+            activeIndex={activeImageIndex}
+            onChangeIndex={setActiveImageIndex}
+          />
+        )}
+
+        {/* Info section */}
+        <div className="detail-info-section">
+          <div className="detail-info-header">
+            <div className="detail-category-icon" style={{ backgroundColor: `${cat.color}20` }}>
+              <CatIcon className="w-5 h-5" style={{ color: cat.color }} />
+            </div>
+            <div>
+              <h2 className="detail-info-title">{name}</h2>
+              <span className="detail-category-badge" style={{ backgroundColor: `${cat.color}15`, color: cat.color }}>
+                {cat.label}
+              </span>
+            </div>
+          </div>
+
+          {description && (
+            <p className="detail-info-desc">{description}</p>
+          )}
+
+          {images.length > 0 && (
+            <div className="detail-image-counter">
+              {activeImageIndex + 1} / {images.length} ảnh
+            </div>
+          )}
+
+          {loc.type === "household" && (
+            <Link
+              href={`/ho-nghe/${loc.household_id}`}
+              className="detail-cta-button"
+            >
+              Xem hồ sơ nghệ nhân →
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Helper function (static, outside component to avoid recreation)
+function getGalleryImagesStatic(loc: any): string[] {
+  if (!loc) return [];
+  if (loc.type === "household") {
+    const samples = loc.households?.household_samples || [];
+    const images = samples.map((s: any) => s.image_url).filter(Boolean);
+    if (loc.households?.cover_image) {
+      images.unshift(loc.households.cover_image);
+    }
+    return images.slice(0, 12);
+  } else {
+    return loc.gallery_urls?.slice(0, 12) || [];
+  }
+}
 
 export function InteractiveMap({ locations }: Props) {
   const [popupInfo, setPopupInfo] = useState<any>(null);
@@ -181,21 +356,6 @@ export function InteractiveMap({ locations }: Props) {
       </div>
     );
   }
-
-  // Helper function to extract gallery images for a location
-  const getGalleryImages = (loc: any) => {
-    if (!loc) return [];
-    if (loc.type === "household") {
-      const samples = loc.households?.household_samples || [];
-      const images = samples.map((s: any) => s.image_url).filter(Boolean);
-      if (loc.households?.cover_image) {
-        images.unshift(loc.households.cover_image);
-      }
-      return images.slice(0, 7);
-    } else {
-      return loc.gallery_urls?.slice(0, 7) || [];
-    }
-  };
 
   return (
     <div className="w-full h-[calc(100vh-64px)] relative">
@@ -376,7 +536,6 @@ export function InteractiveMap({ locations }: Props) {
         maxPitch={85}
         onClick={() => {
           setShowSearchResults(false);
-          setPopupInfo(null);
         }}
       >
         <NavigationControl position="top-right" />
@@ -419,88 +578,15 @@ export function InteractiveMap({ locations }: Props) {
             </Marker>
           );
         })}
-
-        {popupInfo && (
-          <Popup
-            anchor="top"
-            longitude={Number(popupInfo.lng)}
-            latitude={Number(popupInfo.lat)}
-            closeButton={false}
-            className="z-50 custom-popup"
-            style={{ padding: 0 }}
-          >
-            {/* 3D Arc Gallery */}
-            {getGalleryImages(popupInfo).length > 0 && (
-              <div className="arc-gallery-container">
-                {getGalleryImages(popupInfo).map((imgUrl: string, idx: number, arr: any[]) => {
-                  const totalItems = arr.length;
-                  const spread = Math.min(180, totalItems * 30);
-                  const startAngle = -spread / 2;
-                  const step = totalItems > 1 ? spread / (totalItems - 1) : 0;
-                  const angle = startAngle + (idx * step);
-                  const delay = idx * 0.1;
-                  
-                  return (
-                    <div 
-                      key={idx} 
-                      className="arc-card"
-                      style={{ 
-                        "--arc-angle": `${angle}deg`,
-                        animationDelay: `${delay}s`
-                      } as React.CSSProperties}
-                    >
-                      <img src={imgUrl} alt="Gallery" />
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Info Box */}
-            <div className="p-3 w-64 bg-white rounded-lg shadow-xl relative z-10 mt-10">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center gap-2">
-                  {(() => {
-                    const cat = getCategoryConfig(popupInfo.category);
-                    const CatIcon = cat.icon;
-                    return (
-                      <div className="p-1.5 rounded-full" style={{ backgroundColor: `${cat.color}20` }}>
-                        <CatIcon className="w-4 h-4" style={{ color: cat.color }} />
-                      </div>
-                    );
-                  })()}
-                  <h3 className="font-bold text-base text-[var(--pl-char)] pr-4">
-                    {getDisplayName(popupInfo)}
-                  </h3>
-                </div>
-                <button onClick={() => setPopupInfo(null)} className="p-1 hover:bg-secondary rounded-full shrink-0 transition-colors">
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </div>
-
-              <div className="mb-2">
-                <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium" 
-                  style={{ 
-                    backgroundColor: `${getCategoryConfig(popupInfo.category).color}15`,
-                    color: getCategoryConfig(popupInfo.category).color 
-                  }}>
-                  {getCategoryConfig(popupInfo.category).label}
-                </span>
-              </div>
-              
-              <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                {popupInfo.type === "household" ? popupInfo.households?.bio_vi : popupInfo.custom_description}
-              </p>
-
-              {popupInfo.type === "household" && (
-                <Link href={`/ho-nghe/${popupInfo.household_id}`} className="flex items-center justify-center w-full py-2.5 bg-[var(--pl-clay)] text-white rounded-lg font-medium text-sm hover:bg-[var(--pl-eel)] transition-colors shadow-md">
-                  Xem hồ sơ nghệ nhân
-                </Link>
-              )}
-            </div>
-          </Popup>
-        )}
       </Map>
+
+      {/* Full-screen Detail Overlay */}
+      {popupInfo && (
+        <LocationDetailOverlay
+          loc={popupInfo}
+          onClose={() => setPopupInfo(null)}
+        />
+      )}
     </div>
   );
 }
